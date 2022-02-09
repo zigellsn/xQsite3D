@@ -94,10 +94,10 @@ void MainEngine::Init() {
     font = new Font("./res/font/ONESIZE_.TTF", 50);
     font->renderText("Text Test", 3.0f, {1.0f, 0.0f, 0.0f, 1.0f});
 
-    state->viewMatrix = glm::lookAt(state->camera.position, glm::vec3(0.0f, 0.0f, 0.0f),
-                                    glm::vec3(0.0f, 1.0f, 0.0f));
-    auto *camera = new Camera();
-    camera->setPerspective(glm::half_pi<float>(), float(SCREEN_WIDTH) / float(SCREEN_HEIGHT));
+//    state->viewMatrix = glm::lookAt(state->camera.position, glm::vec3(0.0f, 0.0f, 0.0f),
+//                                    glm::vec3(0.0f, 1.0f, 0.0f));
+    auto *camera = new Camera(glm::vec3(0.0f, 0.0f, 15.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    camera->setPerspective(1.047f, float(SCREEN_WIDTH) / float(SCREEN_HEIGHT), 0.1f, 100.0f);
     cameras.push_back(camera);
 
     initShaders();
@@ -214,31 +214,31 @@ void MainEngine::Draw() {
 }
 
 ShaderProgram::block MainEngine::prepareMVPBlock(glm::mat4 modelMatrix) {
-    glm::mat4 MVP = cameras[0]->projectionMatrix * state->viewMatrix * modelMatrix;
-    glm::mat4 N = glm::inverseTranspose(state->viewMatrix * modelMatrix);
+    glm::mat4 MVP = cameras[0]->projectionMatrix * cameras[0]->viewMatrix * modelMatrix;
+    glm::mat4 N = glm::inverseTranspose(cameras[0]->viewMatrix * modelMatrix);
     ShaderProgram::block matrices;
     matrices["MVP"] = {(void *) &MVP[0][0], 16 * sizeof(float)};
     matrices["M"] = {(void *) &modelMatrix[0][0], 16 * sizeof(float)};
-    matrices["V"] = {(void *) &state->viewMatrix[0][0], 16 * sizeof(float)};
+    matrices["V"] = {(void *) &cameras[0]->viewMatrix[0][0], 16 * sizeof(float)};
     matrices["P"] = {(void *) &cameras[0]->projectionMatrix[0][0], 16 * sizeof(float)};
     matrices["N"] = {(void *) &N[0][0], 16 * sizeof(float)};
     return matrices;
 }
 
 ShaderProgram::block MainEngine::prepareOrthoMVPBlock(glm::mat4 modelMatrix) {
-    glm::vec3 right = glm::normalize(glm::cross(state->camera.direction, state->camera.up));
-    modelMatrix = glm::translate(modelMatrix, state->camera.position);
-    modelMatrix = glm::rotate(modelMatrix, state->camera.rotation.x, state->camera.up);
-    modelMatrix = glm::rotate(modelMatrix, state->camera.rotation.y, right);
+    glm::vec3 right = glm::normalize(glm::cross(cameras[0]->direction, cameras[0]->up));
+    modelMatrix = glm::translate(modelMatrix, cameras[0]->position);
+    modelMatrix = glm::rotate(modelMatrix, cameras[0]->rotation.x, cameras[0]->up);
+    modelMatrix = glm::rotate(modelMatrix, cameras[0]->rotation.y, right);
     modelMatrix = glm::translate(modelMatrix, glm::vec3(-3.0f, 2.0f, -5.0f));
     modelMatrix = glm::scale(modelMatrix, glm::vec3(1.0f));
 
-    glm::mat4 MVP = cameras[0]->projectionMatrix * state->viewMatrix * modelMatrix;
+    glm::mat4 MVP = cameras[0]->projectionMatrix * cameras[0]->viewMatrix * modelMatrix;
 
     ShaderProgram::block matrices;
     matrices["MVP"] = {(void *) &MVP[0][0], 16 * sizeof(float)};
     matrices["M"] = {(void *) &modelMatrix[0][0], 16 * sizeof(float)};
-    matrices["V"] = {(void *) &state->viewMatrix[0][0], 16 * sizeof(float)};
+    matrices["V"] = {(void *) &cameras[0]->viewMatrix[0][0], 16 * sizeof(float)};
     matrices["P"] = {(void *) &cameras[0]->projectionMatrix[0][0], 16 * sizeof(float)};
     matrices["N"] = {(void *) &glm::mat4(1.0f)[0][0], 16 * sizeof(float)};
     return matrices;

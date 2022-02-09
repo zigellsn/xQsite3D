@@ -35,6 +35,9 @@ public:
     glm::vec3 lookAt;
     glm::vec3 position;
     glm::vec3 up;
+    glm::vec3 vRight = glm::vec3(1.0f, 0.0f, 0.0f);
+    glm::vec3 direction = glm::vec3(0.0f, 0.0f, 0.0f);
+    glm::vec2 rotation = glm::vec2(0.0f, 0.0f);
 
     glm::vec3 xGlob;
     glm::vec3 yGlob;
@@ -56,7 +59,7 @@ public:
     std::string name;
 
 // constructor with vectors
-    Camera(glm::vec3 position = glm::vec3(0.0f, 0.0f, -15.0f), glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f),
+    explicit Camera(glm::vec3 position = glm::vec3(0.0f, 0.0f, -15.0f), glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f),
            glm::vec3 lookAt = glm::vec3(0.0f, 0.0f, -1.0f));
 
 // constructor with scalar values
@@ -71,20 +74,28 @@ public:
     // void ProcessKeyboard(Camera_Movement direction, float deltaTime);
 
 // processes input received from a mouse input system. Expects the offset value in both the x and y direction.
-    void ProcessMouseMovement(float xoffset, float yoffset, bool constrainPitch = true);
+    // void ProcessMouseMovement(float xoffset, float yoffset, bool constrainPitch = true);
 
 // processes input received from a mouse scroll-wheel event. Only requires input on the vertical wheel-axis
-    void ProcessMouseScroll(float yoffset);
+    // void ProcessMouseScroll(float yoffset);
 
     void setPerspective(float newFov, float newAspect = 4.0f / 3.0f, float newNear = 0.1f, float newFar = 100.0f);
 
-    void translate(glm::vec3 translateVector) override;
+    void translate(glm::vec3 vector) override;
 
     void roll(float angle);
 
     void yaw(float angle);
 
     void pitch(float angle);
+
+    void forward(float amount);
+
+    void backward(float amount);
+
+    void left(float amount);
+
+    void right(float amount);
 
 private:
 // calculates the front vector from the Camera's (updated) Euler Angles

@@ -16,7 +16,7 @@ Camera::Camera(glm::vec3 position, glm::vec3 up, glm::vec3 lookAt) : GLObject(),
 //    Yaw = yaw;
 //    Pitch = pitch;
 
-    setPerspective(glm::half_pi<float>());
+    setPerspective(1.047f);
 
     this->position = position;
     this->up = up;
@@ -25,8 +25,8 @@ Camera::Camera(glm::vec3 position, glm::vec3 up, glm::vec3 lookAt) : GLObject(),
     modelMatrix = glm::mat4(1.0f);
     viewMatrix = glm::mat4(1.0f);
 
-    updateGlobals();
-    updateAxis();
+    // updateGlobals();
+    // updateAxis();
     updateViewMatrix();
 }
 
@@ -39,7 +39,7 @@ Camera::Camera(float posX, float posY, float posZ, float upX, float upY, float u
     Yaw = yaw;
     Pitch = pitch;
 
-    setPerspective(glm::half_pi<float>());
+    setPerspective(1.047f);
     // updateCameraVectors();
 }
 
@@ -95,8 +95,17 @@ Camera::Camera(aiNode *ainode, aiCamera *aicamera, const aiScene *scene)
 }
 
 void Camera::updateViewMatrix() {
-    viewMatrix = glm::lookAt(position, lookAt, up);
-    // projectionViewMatrix = projectionMatrix * viewMatrix;
+    // viewMatrix = glm::lookAt(position, lookAt, up);
+    direction = glm::vec3(sin(rotation.x) * cos(rotation.y),
+                          sin(rotation.y),
+                          cos(rotation.x) * cos(rotation.y));
+
+    vRight = glm::vec3(sin(rotation.x - glm::half_pi<float>()),
+                      0.0,
+                      cos(rotation.x - glm::half_pi<float>()));
+
+    up = glm::cross(vRight, direction);
+    viewMatrix = glm::lookAt(position, position - direction, up);
 }
 
 void Camera::updateGlobals() {
@@ -121,10 +130,30 @@ glm::mat4 Camera::GetViewMatrix() {
     return viewMatrix;
 }
 
-void Camera::translate(glm::vec3 translateVector) {
-    glm::vec3 l_z = translateVector.z * glm::normalize(zGlob);
-    glm::vec3 l_y = translateVector.y * glm::normalize(yGlob);
-    glm::vec3 l_x = translateVector.x * glm::normalize(xGlob);
+void Camera::forward(float amount) {
+    position -= direction * amount;
+    updateViewMatrix();
+}
+
+void Camera::backward(float amount) {
+    position += direction * amount;
+    updateViewMatrix();
+}
+
+void Camera::left(float amount) {
+    position += vRight * amount;
+    updateViewMatrix();
+}
+
+void Camera::right(float amount) {
+    position -= vRight * amount;
+    updateViewMatrix();
+}
+
+void Camera::translate(glm::vec3 vector) {
+    glm::vec3 l_z = vector.z * glm::normalize(zGlob);
+    glm::vec3 l_y = vector.y * glm::normalize(yGlob);
+    glm::vec3 l_x = vector.x * glm::normalize(xGlob);
 
     glm::vec3 t0 = l_z + l_y + l_x;
 
@@ -166,50 +195,54 @@ void Camera::roll(float angle) // local z
 
 void Camera::pitch(float angle) // local X
 {
-    glm::vec3 diffCenter = glm::rotate(zGlob, -angle, xGlob) - zGlob;
-    glm::vec3 diffUp = glm::rotate(yGlob, -angle, xGlob) - yGlob;
-    lookAt += diffCenter;
-    up += diffUp;
+    rotation.y = angle;
     updateViewMatrix();
-    updateAxis();
+//    glm::vec3 diffCenter = glm::rotate(zGlob, -angle, xGlob) - zGlob;
+//    glm::vec3 diffUp = glm::rotate(yGlob, -angle, xGlob) - yGlob;
+//    lookAt += diffCenter;
+//    up += diffUp;
+//    updateViewMatrix();
+//    updateAxis();
 }
 
 void Camera::yaw(float angle) // local Y (up)
 {
-    glm::vec3 diffLR = glm::rotate(zGlob, -angle, yGlob) - zGlob;
-    lookAt += diffLR;
+    rotation.x = angle;
     updateViewMatrix();
-    updateAxis();
+//    glm::vec3 diffLR = glm::rotate(zGlob, -angle, yGlob) - zGlob;
+//    lookAt += diffLR;
+//    updateViewMatrix();
+//    updateAxis();
 }
 
 // processes input received from a mouse input system. Expects the offset value in both the x and y direction.
-void Camera::ProcessMouseMovement(float xoffset, float yoffset, bool constrainPitch) {
-    xoffset *= MouseSensitivity;
-    yoffset *= MouseSensitivity;
-
-    Yaw += xoffset;
-    Pitch += yoffset;
-
-    // make sure that when pitch is out of bounds, screen doesn't get flipped
-    if (constrainPitch) {
-        if (Pitch > 89.0f)
-            Pitch = 89.0f;
-        if (Pitch < -89.0f)
-            Pitch = -89.0f;
-    }
-
-    // update Front, Right and Up Vectors using the updated Euler angles
-    // updateCameraVectors();
-}
+//void Camera::ProcessMouseMovement(float xoffset, float yoffset, bool constrainPitch) {
+//    xoffset *= MouseSensitivity;
+//    yoffset *= MouseSensitivity;
+//
+//    Yaw += xoffset;
+//    Pitch += yoffset;
+//
+//    // make sure that when pitch is out of bounds, screen doesn't get flipped
+//    if (constrainPitch) {
+//        if (Pitch > 89.0f)
+//            Pitch = 89.0f;
+//        if (Pitch < -89.0f)
+//            Pitch = -89.0f;
+//    }
+//
+//    // update Front, Right and Up Vectors using the updated Euler angles
+//    // updateCameraVectors();
+//}
 
 // processes input received from a mouse scroll-wheel event. Only requires input on the vertical wheel-axis
-void Camera::ProcessMouseScroll(float yoffset) {
-    Zoom -= (float) yoffset;
-    if (Zoom < 1.0f)
-        Zoom = 1.0f;
-    if (Zoom > 45.0f)
-        Zoom = 45.0f;
-}
+//void Camera::ProcessMouseScroll(float yoffset) {
+//    Zoom -= (float) yoffset;
+//    if (Zoom < 1.0f)
+//        Zoom = 1.0f;
+//    if (Zoom > 45.0f)
+//        Zoom = 45.0f;
+//}
 
 //// calculates the front vector from the Camera's (updated) Euler Angles
 //void Camera::updateCameraVectors(bool calcFront) {
