@@ -43,6 +43,7 @@ private:
     SDL_GLContext mainGLContext;
 
     vector<Mesh *> meshes;
+    vector<Camera *> cameras;
     vector<Light *> lights;
 
     State *state;

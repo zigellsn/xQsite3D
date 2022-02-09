@@ -96,8 +96,10 @@ void MainEngine::Init() {
 
     state->viewMatrix = glm::lookAt(state->camera.position, glm::vec3(0.0f, 0.0f, 0.0f),
                                     glm::vec3(0.0f, 1.0f, 0.0f));
-    state->aspect = float(SCREEN_WIDTH) / float(SCREEN_HEIGHT);
-    state->projectionMatrix = glm::perspective(state->fov, state->aspect, 0.1f, 200.0f);
+    auto *camera = new Camera();
+    camera->setPerspective(glm::half_pi<float>(), float(SCREEN_WIDTH) / float(SCREEN_HEIGHT));
+    cameras.push_back(camera);
+
     initShaders();
     state->state = GState::RUNNING;
 }
@@ -129,7 +131,7 @@ void MainEngine::MainLoop() {
     while (state->state == GState::RUNNING) {
         auto startTicks = (float) SDL_GetTicks64();
 
-        input->ProcessInput();
+        input->ProcessInput(cameras[0]);
         Draw();
         SDL_GL_SwapWindow(win);
         calcFPS();
@@ -212,13 +214,13 @@ void MainEngine::Draw() {
 }
 
 ShaderProgram::block MainEngine::prepareMVPBlock(glm::mat4 modelMatrix) {
-    glm::mat4 MVP = state->projectionMatrix * state->viewMatrix * modelMatrix;
+    glm::mat4 MVP = cameras[0]->projectionMatrix * state->viewMatrix * modelMatrix;
     glm::mat4 N = glm::inverseTranspose(state->viewMatrix * modelMatrix);
     ShaderProgram::block matrices;
     matrices["MVP"] = {(void *) &MVP[0][0], 16 * sizeof(float)};
     matrices["M"] = {(void *) &modelMatrix[0][0], 16 * sizeof(float)};
     matrices["V"] = {(void *) &state->viewMatrix[0][0], 16 * sizeof(float)};
-    matrices["P"] = {(void *) &state->projectionMatrix[0][0], 16 * sizeof(float)};
+    matrices["P"] = {(void *) &cameras[0]->projectionMatrix[0][0], 16 * sizeof(float)};
     matrices["N"] = {(void *) &N[0][0], 16 * sizeof(float)};
     return matrices;
 }
@@ -231,13 +233,13 @@ ShaderProgram::block MainEngine::prepareOrthoMVPBlock(glm::mat4 modelMatrix) {
     modelMatrix = glm::translate(modelMatrix, glm::vec3(-3.0f, 2.0f, -5.0f));
     modelMatrix = glm::scale(modelMatrix, glm::vec3(1.0f));
 
-    glm::mat4 MVP = state->projectionMatrix * state->viewMatrix * modelMatrix;
+    glm::mat4 MVP = cameras[0]->projectionMatrix * state->viewMatrix * modelMatrix;
 
     ShaderProgram::block matrices;
     matrices["MVP"] = {(void *) &MVP[0][0], 16 * sizeof(float)};
     matrices["M"] = {(void *) &modelMatrix[0][0], 16 * sizeof(float)};
     matrices["V"] = {(void *) &state->viewMatrix[0][0], 16 * sizeof(float)};
-    matrices["P"] = {(void *) &state->projectionMatrix[0][0], 16 * sizeof(float)};
+    matrices["P"] = {(void *) &cameras[0]->projectionMatrix[0][0], 16 * sizeof(float)};
     matrices["N"] = {(void *) &glm::mat4(1.0f)[0][0], 16 * sizeof(float)};
     return matrices;
 }

@@ -8,6 +8,7 @@
 #include "glm/vec3.hpp"
 #include "glm/ext/matrix_transform.hpp"
 #include "assimp/scene.h"
+#include "GLObject.h"
 
 // Defines several possible options for camera movement. Used as abstraction to stay away from window-system specific input methods
 enum Camera_Movement {
@@ -24,17 +25,12 @@ const float SPEED = 2.5f;
 const float SENSITIVITY = 0.1f;
 const float ZOOM = 45.0f;
 
-class Camera {
+class Camera : GLObject {
 public:
 // camera Attributes
     glm::mat4 modelMatrix;
     glm::mat4 viewMatrix;
     glm::mat4 projectionMatrix;
-    glm::vec3 Position;
-    glm::vec3 Front;
-    glm::vec3 Up;
-    glm::vec3 Right;
-    glm::vec3 WorldUp;
 
     glm::vec3 lookAt;
     glm::vec3 position;
@@ -71,10 +67,8 @@ public:
 // returns the view matrix calculated using Euler Angles and the LookAt Matrix
     glm::mat4 GetViewMatrix();
 
-    glm::mat4 getProjectionMatrix();
-
 // processes input received from any keyboard-like input system. Accepts input parameter in the form of camera defined ENUM (to abstract it from windowing systems)
-    void ProcessKeyboard(Camera_Movement direction, float deltaTime);
+    // void ProcessKeyboard(Camera_Movement direction, float deltaTime);
 
 // processes input received from a mouse input system. Expects the offset value in both the x and y direction.
     void ProcessMouseMovement(float xoffset, float yoffset, bool constrainPitch = true);
@@ -82,17 +76,24 @@ public:
 // processes input received from a mouse scroll-wheel event. Only requires input on the vertical wheel-axis
     void ProcessMouseScroll(float yoffset);
 
-    void translate(glm::vec3 translateVector);
+    void setPerspective(float newFov, float newAspect = 4.0f / 3.0f, float newNear = 0.1f, float newFar = 100.0f);
+
+    void translate(glm::vec3 translateVector) override;
+
     void roll(float angle);
+
     void yaw(float angle);
+
     void pitch(float angle);
 
 private:
 // calculates the front vector from the Camera's (updated) Euler Angles
-    void updateCameraVectors(bool calcFront = true);
+    // void updateCameraVectors(bool calcFront = true);
 
     void updateViewMatrix();
+
     void updateGlobals();
+
     void updateAxis();
 };
 

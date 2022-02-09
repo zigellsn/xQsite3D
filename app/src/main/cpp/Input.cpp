@@ -8,7 +8,7 @@ Input::Input(State *state) {
     this->state = state;
 }
 
-void Input::ProcessInput() {
+void Input::ProcessInput(Camera *camera) {
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
         switch (event.type) {
@@ -17,8 +17,7 @@ void Input::ProcessInput() {
                 state->camera.rotation.y += state->mouseSpeed * (float) event.motion.yrel;
                 break;
             case SDL_MOUSEWHEEL:
-                state->fov -= (float) event.wheel.y * 0.1f;
-                state->projectionMatrix = glm::perspective(state->fov, state->aspect, 0.1f, 100.0f);
+                camera->setPerspective(camera->fov - (float) event.wheel.y * 0.1f);
                 break;
             case SDL_QUIT:
                 state->state = GState::STOPPED;

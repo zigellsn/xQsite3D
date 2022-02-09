@@ -13,7 +13,7 @@ enum class GState {
 
 class State {
 public:
-    glm::mat4 projectionMatrix{glm::mat4(1.0f)}, viewMatrix{glm::mat4(1.0f)};
+    glm::mat4 viewMatrix{glm::mat4(1.0f)};
 
     // position
     struct Camera {
@@ -31,8 +31,6 @@ public:
 
     float frameTime = 0.0f;
     int currentFrame = 0;
-    float fov = 1.047f;
-    float aspect = 3.0f / 4.0f;
     bool debug = false;
     GState state = GState::STOPPED;
 

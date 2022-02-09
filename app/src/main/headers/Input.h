@@ -8,12 +8,13 @@
 
 #include "xQsite3D.h"
 #include "State.h"
+#include "objects/Camera.h"
 
 class Input {
 public:
     Input(State *state);
 
-    void ProcessInput();
+    void ProcessInput(Camera *camera);
 
 private:
     State *state;
