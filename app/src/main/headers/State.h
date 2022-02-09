@@ -31,7 +31,7 @@ public:
 
     float frameTime = 0.0f;
     int currentFrame = 0;
-    float initialFoV = 1.047f;
+    float fov = 1.047f;
     float aspect = 3.0f / 4.0f;
     bool debug = false;
     GState state = GState::STOPPED;

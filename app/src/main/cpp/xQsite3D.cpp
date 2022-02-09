@@ -6,7 +6,7 @@ using namespace std;
 
 int main(int argc, char **argv) {
     int w = 1024, h = 768;
-    string scene = "res/quad.dae";
+    string scene = "res/ship.dae";
     bool fullscreen = false;
 
     if (argc > 1) {

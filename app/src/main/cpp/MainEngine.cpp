@@ -97,7 +97,7 @@ void MainEngine::Init() {
     state->viewMatrix = glm::lookAt(state->camera.position, glm::vec3(0.0f, 0.0f, 0.0f),
                                     glm::vec3(0.0f, 1.0f, 0.0f));
     state->aspect = float(SCREEN_WIDTH) / float(SCREEN_HEIGHT);
-    state->projectionMatrix = glm::perspective(state->initialFoV, state->aspect, 0.1f, 200.0f);
+    state->projectionMatrix = glm::perspective(state->fov, state->aspect, 0.1f, 200.0f);
     initShaders();
     state->state = GState::RUNNING;
 }
