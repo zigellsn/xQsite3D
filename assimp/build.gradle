@@ -1,0 +1,36 @@
+plugins {
+    id "com.ze.gradle.cmakeplugin.cmake-library" version "0.1.0-rc01"
+}
+
+ext {
+    assimp_version = "5.2.1"
+}
+
+tasks {
+    task downloadLibs(type: com.ze.gradle.cmakeplugin.tasks.DownloadZipAndUnpack) {
+        description "Download library ZIP files"
+        url = "https://github.com/assimp/assimp/archive/refs/tags/v${assimp_version}.zip"
+        dest = layout.projectDirectory.dir("$buildDir/lib/")
+        deleteAfterDownload = true
+    }
+
+    task copyIncludes(type: Copy) {
+        dependsOn downloadLibs
+        from "$buildDir/lib/assimp-${assimp_version}/include/assimp"
+        into "$buildDir/debug/include/assimp"
+    }
+}
+
+cmake {
+    cmakeDirectory = layout.projectDirectory.dir("$buildDir/lib/assimp-${assimp_version}")
+
+    cmakeDebug.configure {
+        dependsOn downloadLibs
+        dependsOn copyIncludes
+    }
+
+    cmakeRelease.configure {
+        dependsOn downloadLibs
+        dependsOn copyIncludes
+    }
+}

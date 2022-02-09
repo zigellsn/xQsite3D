@@ -1,0 +1,57 @@
+plugins {
+    id 'java-gradle-plugin'
+    id 'com.gradle.plugin-publish' version '0.12.0'
+    id 'nu.studer.credentials' version '2.1'
+}
+
+pluginBundle {
+    website = 'https://github.com/jc-lab/gradle-cmake-plugin'
+    vcsUrl = 'https://github.com/jc-lab/gradle-cmake-plugin'
+    tags = ['cmake']
+}
+
+gradlePlugin {
+    plugins {
+        register('cmakeLibrary') {
+            id = 'com.ze.gradle.cmakeplugin.cmake-library'
+            displayName = 'cmake-library'
+            description = 'cmake-library'
+            implementationClass = 'com.ze.gradle.cmakeplugin.plugins.cmake.CMakeLibraryPlugin'
+        }
+        register('cmakeApplication') {
+            id = 'com.ze.gradle.cmakeplugin.cmake-application'
+            displayName = 'cmake-application'
+            description = 'cmake-application'
+            implementationClass = 'com.ze.gradle.cmakeplugin.plugins.cmake.CMakeApplicationPlugin'
+        }
+        register('wrappedBase') {
+            id = 'com.ze.gradle.cmakeplugin.wrapped-native-base'
+            displayName = 'wrapped-native-base'
+            description = 'wrapped-native-base'
+            implementationClass = 'com.ze.gradle.cmakeplugin.plugins.WrappedNativeBasePlugin'
+        }
+        register('wrappedApplication') {
+            id = 'com.ze.gradle.cmakeplugin.wrapped-native-application'
+            displayName = 'wrapped-native-application'
+            description = 'wrapped-native-application'
+            implementationClass = 'com.ze.gradle.cmakeplugin.plugins.WrappedNativeApplicationPlugin'
+        }
+        register('wrappedLibrary') {
+            id = 'com.ze.gradle.cmakeplugin.wrapped-native-library'
+            displayName = 'wrapped-native-library'
+            description = 'wrapped-native-library'
+            implementationClass = 'com.ze.gradle.cmakeplugin.plugins.WrappedNativeLibraryPlugin'
+        }
+    }
+}
+
+group 'com.ze.gradle.cmakeplugin'
+version '0.1.0-rc01'
+
+repositories {
+    mavenCentral()
+}
+
+// dependencies {
+//     testCompile group: 'junit', name: 'junit', version: '4.12'
+// }
