@@ -35,27 +35,38 @@ vector<Mesh *> Scene::getMeshes() {
 void Scene::getAllMeshes(aiNode *node, aiMatrix4x4 transformation,
                          vector<Mesh *> *meshes) {
     aiMatrix4x4 transform;
-
+    Mesh *tmpMesh;
     if (node->mNumMeshes > 0) {
+        Mesh *tmpParentMesh = new Mesh(node->mName.data);
+        transform = node->mTransformation * transformation;
+        tmpParentMesh->setModelMatrix(
+                glm::mat4(transform.a1, transform.b1, transform.c1, transform.d1,
+                          transform.a2, transform.b2, transform.c2, transform.d2,
+                          transform.a3, transform.b3, transform.c3, transform.d3,
+                          transform.a4, transform.b4, transform.c4, transform.d4));
         for (unsigned int i = 0; i < node->mNumMeshes; i++) {
-            Mesh *tmpMesh = getMesh(node->mMeshes[i]);
+            tmpMesh = getMesh(node->mMeshes[i]);
             transform = node->mTransformation * transformation;
             if (tmpMesh != nullptr) {
-                glm::mat4 modelMatrix = glm::mat4(transform.a1, transform.b1, transform.c1, transform.d1,
-                                                  transform.a2, transform.b2, transform.c2, transform.d2,
-                                                  transform.a3, transform.b3, transform.c3, transform.d3,
-                                                  transform.a4, transform.b4, transform.c4, transform.d4);
-                tmpMesh->setModelMatrix(modelMatrix);
-                meshes->push_back(tmpMesh);
+                tmpMesh->setModelMatrix(
+                        glm::mat4(transform.a1, transform.b1, transform.c1, transform.d1,
+                                  transform.a2, transform.b2, transform.c2, transform.d2,
+                                  transform.a3, transform.b3, transform.c3, transform.d3,
+                                  transform.a4, transform.b4, transform.c4, transform.d4));
+                tmpParentMesh->children.push_back(tmpMesh);
+                for (unsigned int j = 0; j < node->mNumChildren; j++) {
+                    getAllMeshes(node->mChildren[j], transform, &tmpMesh->children);
+                }
             }
         }
+        meshes->push_back(tmpParentMesh);
     } else {
         transform = node->mTransformation * transformation;
+        for (unsigned int i = 0; i < node->mNumChildren; i++) {
+            getAllMeshes(node->mChildren[i], transform, meshes);
+        }
     }
 
-    for (unsigned int i = 0; i < node->mNumChildren; i++) {
-        getAllMeshes(node->mChildren[i], transform, meshes);
-    }
     meshes->insert(meshes->end(), additional_meshes.begin(), additional_meshes.end());
 }
 
