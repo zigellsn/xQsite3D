@@ -211,4 +211,6 @@ void ShaderProgram::setUniformBlock(const GLchar *name, block &values) {
 
     free(blockBuffer);
     layout++;
+    delete[] uniformIndices;
+    delete[] uniformOffsets;
 }
