@@ -187,12 +187,7 @@ void MainEngine::Draw() {
         shaderManager->getShader("ship")->end();
 
         if (state->debug) {
-            bBoxObject->setBBox(meshes[i]->getBBox());
-            matrices = prepareMVPBlock(bBoxObject->getTransformedModelMatrix(meshes[i]->getModelMatrix()));
-            shaderManager->getShader("axis")->begin();
-            shaderManager->getShader("axis")->setUniformBlock("Matrices", matrices);
-            bBoxObject->draw();
-            shaderManager->getShader("axis")->end();
+            drawBoundingBox(meshes[i], meshes[i]->getModelMatrix());
         }
     }
 
@@ -209,11 +204,9 @@ ShaderProgram::block MainEngine::prepareMVPBlock(glm::mat4 modelMatrix) {
             cameras[state->currentCamera]->projectionMatrix * cameras[state->currentCamera]->viewMatrix * modelMatrix;
     glm::mat4 N = glm::inverseTranspose(cameras[state->currentCamera]->viewMatrix * modelMatrix);
     ShaderProgram::block matrices;
-    matrices["MVP"] = {(void *) &MVP[0][0], 16 * sizeof(float)};
     matrices["M"] = {(void *) &modelMatrix[0][0], 16 * sizeof(float)};
     matrices["V"] = {(void *) &cameras[state->currentCamera]->viewMatrix[0][0], 16 * sizeof(float)};
     matrices["P"] = {(void *) &cameras[state->currentCamera]->projectionMatrix[0][0], 16 * sizeof(float)};
-    matrices["N"] = {(void *) &N[0][0], 16 * sizeof(float)};
     return matrices;
 }
 
@@ -235,6 +228,19 @@ void MainEngine::drawAxis() {
     shaderManager->getShader("axis")->setUniformBlock("Matrices", matrices);
     axisObject->draw();
     shaderManager->getShader("axis")->end();
+}
+
+void MainEngine::drawBoundingBox(Mesh *mesh, glm::mat4 modelMatrix) {
+    ShaderProgram::block matrices = prepareMVPBlock(modelMatrix);
+    bBoxObject->setBBox(mesh->getBBox());
+    matrices = prepareMVPBlock(bBoxObject->getTransformedModelMatrix(modelMatrix));
+    shaderManager->getShader("axis")->begin();
+    shaderManager->getShader("axis")->setUniformBlock("Matrices", matrices);
+    bBoxObject->draw();
+    shaderManager->getShader("axis")->end();
+    for (auto &m: mesh->children) {
+        drawBoundingBox(m, modelMatrix);
+    }
 }
 
 void MainEngine::calcFPS() {

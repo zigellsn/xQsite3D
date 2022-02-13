@@ -56,6 +56,8 @@ private:
     ShaderProgram::block prepareMVPBlock(glm::mat4 modelMatrix);
 
     void initShaders();
+
+    void drawBoundingBox(Mesh *mesh, glm::mat4 modelMatrix);
 };
 
 #endif //SDLTEST_MAINENGINE_H

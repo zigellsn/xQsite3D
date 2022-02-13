@@ -45,6 +45,17 @@ Mesh::Mesh(aiMesh *mesh, const aiScene *scene) : Mesh() {
 //                    {mesh->mColors[i]->r, mesh->mColors[i]->g, mesh->mColors[i]->b, mesh->mColors[i]->a});
 //        }
     }
+
+    if (mesh->mAABB.mMin != aiVector3D(0.0f) || mesh->mAABB.mMax != aiVector3D(0.0f)) {
+        boundingBox.first.x = mesh->mAABB.mMin.x;
+        boundingBox.first.y = mesh->mAABB.mMin.y;
+        boundingBox.first.z = mesh->mAABB.mMin.z;
+        boundingBox.second.x = mesh->mAABB.mMax.x;
+        boundingBox.second.y = mesh->mAABB.mMax.y;
+        boundingBox.second.z = mesh->mAABB.mMax.z;
+    } else {
+        calculateBoundingBox();
+    }
     prepareBuffers();
 }
 
@@ -76,7 +87,6 @@ void Mesh::setIndices(unsigned int numFaces, const aiFace *faces) {
 void Mesh::prepareBuffers() {
     glBindVertexArray(vao);
     if (!meshData.position.empty()) {
-        calculateBoundingBox();
         glGenBuffers(1, &positionBuffer);
         glBindBuffer(GL_ARRAY_BUFFER, positionBuffer);
         glBufferData(GL_ARRAY_BUFFER, sizeof(struct Position) * meshData.position.size(), &meshData.position[0],
@@ -157,8 +167,6 @@ void Mesh::draw() {
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
 
-//    if (shader != nullptr)
-//        shader->enable();
     drawElements();
 
     glBindVertexArray(0);

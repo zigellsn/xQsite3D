@@ -5,8 +5,8 @@
       <author>Blender User</author>
       <authoring_tool>Blender 3.0.1 commit date:2022-01-25, commit time:17:19, hash:dc2d18018171</authoring_tool>
     </contributor>
-    <created>2022-02-11T18:55:48</created>
-    <modified>2022-02-11T18:55:48</modified>
+    <created>2022-02-13T23:03:37</created>
+    <modified>2022-02-13T23:03:37</modified>
     <unit name="meter" meter="1"/>
     <up_axis>Z_UP</up_axis>
   </asset>
@@ -161,7 +161,7 @@
   <library_visual_scenes>
     <visual_scene id="Scene" name="Scene">
       <node id="Camera" name="Camera" type="NODE">
-        <matrix sid="transform">1 6.27834e-7 -1.75635e-6 0 -1.75635e-6 5.20545e-7 -1 -15 -6.27833e-7 1 5.20547e-7 0 0 0 0 1</matrix>
+        <matrix sid="transform">0.6492912 -0.3535845 0.6733491 10.0532 0.7595536 0.34655 -0.5504376 -9.043785 -0.03872291 0.8688389 0.4935782 7.130846 0 0 0 1</matrix>
         <instance_camera url="#Camera-camera"/>
       </node>
       <node id="Light" name="Light" type="NODE">
