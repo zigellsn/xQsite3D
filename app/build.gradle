@@ -211,4 +211,16 @@ tasks {
         dependsOn copyGlewInclude
         dependsOn copyAssImpInclude
     }
+
+    task copyAssetsDebug(type: Copy) {
+        from "${projectDir}/../res/"
+        into "${buildDir}/install/main/debug/lib/res"
+    }
+    task copyAssetsRelease(type: Copy) {
+        from "${projectDir}/../res/"
+        into "${buildDir}/install/main/release/lib/res"
+    }
 }
+
+assemble.finalizedBy copyAssetsDebug
+assemble.finalizedBy copyAssetsRelease

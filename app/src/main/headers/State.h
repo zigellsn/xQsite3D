@@ -24,6 +24,7 @@ public:
 
     float maxFPS = 60.0f;
     GLfloat fps = 0.0f;
+    unsigned int currentCamera = 0;
 };
 
 

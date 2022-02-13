@@ -9,6 +9,13 @@ Also I did not include textures. They have to be present in `res/textures/`.
 
 Then just run `gradle build`.
 
+# Creating and Exporting Models in Blender
+
+Let the camera look down towards -Z, with the up vector pointing to Y. Now hit Ctrl-A with the camera selected and chose 
+'Rotation to Deltas'.
+
+Export to COLLADA with Forward Axis Y and Up Asis Z. This will ensure that the camera vectors are correct.
+
 # License
 
 See [LICENSE](./LICENSE)

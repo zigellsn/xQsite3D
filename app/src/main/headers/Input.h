@@ -18,6 +18,7 @@ public:
 
 private:
     State *state;
+    bool rmb = false;
 };
 
 

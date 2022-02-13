@@ -120,10 +120,12 @@ void ShaderProgram::link() const {
     // Always detach shaders after a successful link.
     glDetachShader(programId, vertexShaderId);
     glDetachShader(programId, fragmentShaderId);
-    glDetachShader(programId, geometryShaderId);
+    if (geometryShaderId != 0)
+        glDetachShader(programId, geometryShaderId);
     glDeleteShader(vertexShaderId);
     glDeleteShader(fragmentShaderId);
-    glDeleteShader(geometryShaderId);
+    if (geometryShaderId != 0)
+        glDeleteShader(geometryShaderId);
 }
 
 void ShaderProgram::appendAttribute(const std::string &attribute) {
@@ -165,7 +167,7 @@ void ShaderProgram::setUniformBlock(const GLchar *name, block &values) {
     int countData = (int) values.size();
 
     std::vector<const GLchar *> keys;
-    for (const auto& imap: values)
+    for (const auto &imap: values)
         keys.push_back((const GLchar *) imap.first.c_str());
 
     auto *names = new GLchar const *[countData];

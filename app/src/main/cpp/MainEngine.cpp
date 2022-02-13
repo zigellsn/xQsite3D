@@ -30,27 +30,16 @@ void MainEngine::Init() {
         error(SDL_GetError());
     }
 
-    //SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-    //SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
-    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
-    SDL_GL_SetAttribute(SDL_GL_BUFFER_SIZE, 32);
-
-    SDL_GL_SetAttribute(SDL_GL_ACCUM_RED_SIZE, 8);
-    SDL_GL_SetAttribute(SDL_GL_ACCUM_GREEN_SIZE, 8);
-    SDL_GL_SetAttribute(SDL_GL_ACCUM_BLUE_SIZE, 8);
-    SDL_GL_SetAttribute(SDL_GL_ACCUM_ALPHA_SIZE, 8);
-
-    SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
-    SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
-    SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
-    SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
-
-    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
-    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 2);
+    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+    SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
 
     SDL_SetRelativeMouseMode(SDL_TRUE);
-    SDL_GL_SetSwapInterval(1);
 
     win = SDL_CreateWindow("OpenGL Test", SDL_WINDOWPOS_UNDEFINED,
                            SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, flags);
@@ -58,10 +47,10 @@ void MainEngine::Init() {
         error(SDL_GetError());
     }
 
-    IMG_Init(IMG_INIT_JPG | IMG_INIT_PNG);
     mainGLContext = SDL_GL_CreateContext(win);
 
     SDL_GL_MakeCurrent(win, mainGLContext);
+    SDL_GL_SetSwapInterval(1);
 
     glewExperimental = GL_TRUE;
     GLenum status = glewInit();
@@ -87,17 +76,17 @@ void MainEngine::Init() {
         cout << "OpenGL version " << version << endl;
     }
 
+    IMG_Init(IMG_INIT_JPG | IMG_INIT_PNG);
     TTF_Init();
 
     axisObject = (Mesh *) new AxisObject(5.0f);
     bBoxObject = new BBoxObject();
     font = new Font("./res/font/ONESIZE_.TTF", 50);
-    font->renderText("Text Test", 3.0f, {1.0f, 0.0f, 0.0f, 1.0f});
+    font->renderText("Text Test", {1.0f, 0.0f, 0.0f, 1.0f});
+    font->factor = 0.5f;
 
-//    state->viewMatrix = glm::lookAt(state->camera.position, glm::vec3(0.0f, 0.0f, 0.0f),
-//                                    glm::vec3(0.0f, 1.0f, 0.0f));
-    auto *camera = new Camera(glm::vec3(0.0f, 0.0f, 15.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-    camera->setPerspective(1.047f, float(SCREEN_WIDTH) / float(SCREEN_HEIGHT), 0.1f, 100.0f);
+    auto *camera = new Camera(glm::vec3(0.0f, 0.0f, -15.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    camera->setPerspective(0.6911f, float(SCREEN_WIDTH) / float(SCREEN_HEIGHT), 0.1f, 100.0f);
     cameras.push_back(camera);
 
     initShaders();
@@ -131,7 +120,7 @@ void MainEngine::MainLoop() {
     while (state->state == GState::RUNNING) {
         auto startTicks = (float) SDL_GetTicks64();
 
-        input->ProcessInput(cameras[0]);
+        input->ProcessInput(cameras[state->currentCamera]);
         Draw();
         SDL_GL_SwapWindow(win);
         calcFPS();
@@ -158,14 +147,16 @@ void MainEngine::Update() {
 
 void MainEngine::ImportScene(const string &filename) {
     auto *sl = new Scene();
-    sl->loadFromFile(filename);
-//    auto *axis = loadAxis();
-//    sl->addMesh(axis);
+    sl->loadFromFile(filename, BLENDER);
 
     meshes = sl->getMeshes();
+    std::vector<Camera *> c = sl->getCameras();
+    cameras.insert(cameras.end(), c.begin(), c.end());
+    for (auto &cam: cameras) {
+        cam->flipY = true;
+        cam->flipX = true;
+    }
     lights = sl->getLights();
-
-    //  meshes[0]->rotate(X_AXIS, glm::half_pi<float>());
 
     /*l = sl->getLight(1);
      if (l != nullptr) {
@@ -205,42 +196,24 @@ void MainEngine::Draw() {
         }
     }
 
-    ShaderProgram::block matrices = prepareOrthoMVPBlock(font->getModelMatrix());
     shaderManager->getShader("font")->begin();
+    glUniform1f(shaderManager->getShader("font")->getUniformLocation("factor"), font->factor);
+    glUniform2f(shaderManager->getShader("font")->getUniformLocation("pos"), -font->pos.x, font->pos.y);
     glUniform1i(shaderManager->getShader("font")->getUniformLocation("textureSampler"), 0);
-    shaderManager->getShader("font")->setUniformBlock("Matrices", matrices);
     font->draw();
     shaderManager->getShader("font")->end();
 }
 
 ShaderProgram::block MainEngine::prepareMVPBlock(glm::mat4 modelMatrix) {
-    glm::mat4 MVP = cameras[0]->projectionMatrix * cameras[0]->viewMatrix * modelMatrix;
-    glm::mat4 N = glm::inverseTranspose(cameras[0]->viewMatrix * modelMatrix);
+    glm::mat4 MVP =
+            cameras[state->currentCamera]->projectionMatrix * cameras[state->currentCamera]->viewMatrix * modelMatrix;
+    glm::mat4 N = glm::inverseTranspose(cameras[state->currentCamera]->viewMatrix * modelMatrix);
     ShaderProgram::block matrices;
     matrices["MVP"] = {(void *) &MVP[0][0], 16 * sizeof(float)};
     matrices["M"] = {(void *) &modelMatrix[0][0], 16 * sizeof(float)};
-    matrices["V"] = {(void *) &cameras[0]->viewMatrix[0][0], 16 * sizeof(float)};
-    matrices["P"] = {(void *) &cameras[0]->projectionMatrix[0][0], 16 * sizeof(float)};
+    matrices["V"] = {(void *) &cameras[state->currentCamera]->viewMatrix[0][0], 16 * sizeof(float)};
+    matrices["P"] = {(void *) &cameras[state->currentCamera]->projectionMatrix[0][0], 16 * sizeof(float)};
     matrices["N"] = {(void *) &N[0][0], 16 * sizeof(float)};
-    return matrices;
-}
-
-ShaderProgram::block MainEngine::prepareOrthoMVPBlock(glm::mat4 modelMatrix) {
-    glm::vec3 right = glm::normalize(glm::cross(cameras[0]->direction, cameras[0]->up));
-    modelMatrix = glm::translate(modelMatrix, cameras[0]->position);
-    modelMatrix = glm::rotate(modelMatrix, cameras[0]->rotation.x, cameras[0]->up);
-    modelMatrix = glm::rotate(modelMatrix, cameras[0]->rotation.y, right);
-    modelMatrix = glm::translate(modelMatrix, glm::vec3(-3.0f, 2.0f, -5.0f));
-    modelMatrix = glm::scale(modelMatrix, glm::vec3(1.0f));
-
-    glm::mat4 MVP = cameras[0]->projectionMatrix * cameras[0]->viewMatrix * modelMatrix;
-
-    ShaderProgram::block matrices;
-    matrices["MVP"] = {(void *) &MVP[0][0], 16 * sizeof(float)};
-    matrices["M"] = {(void *) &modelMatrix[0][0], 16 * sizeof(float)};
-    matrices["V"] = {(void *) &cameras[0]->viewMatrix[0][0], 16 * sizeof(float)};
-    matrices["P"] = {(void *) &cameras[0]->projectionMatrix[0][0], 16 * sizeof(float)};
-    matrices["N"] = {(void *) &glm::mat4(1.0f)[0][0], 16 * sizeof(float)};
     return matrices;
 }
 

@@ -4,7 +4,7 @@ GLObject::GLObject(const std::string &name) : material(nullptr), modelMatrix(glm
     this->name = name;
 }
 
-void GLObject::translate(glm::vec3 vector) {
+void GLObject::translate(const glm::vec3 vector) {
     modelMatrix = glm::translate(modelMatrix, vector);
 }
 

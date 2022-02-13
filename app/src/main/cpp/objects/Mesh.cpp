@@ -4,7 +4,8 @@
 
 Mesh::Mesh(const std::string &name) : GLObject(name), indices(), positionBuffer(0), colorBuffer(0), normalBuffer(0),
                                       textureCoordinateBuffer(0),
-                                      indexBuffer(0), meshData() {
+                                      indexBuffer(0), vao(0), meshData() {
+    glGenVertexArrays(1, &vao);
 }
 
 Mesh::Mesh(aiMesh *mesh, const aiScene *scene) : Mesh() {
@@ -22,7 +23,9 @@ Mesh::Mesh(aiMesh *mesh, const aiScene *scene) : Mesh() {
             aiString Path;
             if (material->GetTexture(aiTextureType_DIFFUSE, i, &Path, nullptr,
                                      nullptr, nullptr, nullptr, nullptr) == AI_SUCCESS) {
-                string FullPath = dir + Path.data;
+                string path = Path.data;
+                string base_filename = path.substr(path.find_last_of("/\\") + 1);
+                string FullPath = dir + base_filename;
                 SDL_Surface *surface = IMG_Load(FullPath.c_str());
                 textures.push_back(textureFromSurface(surface));
                 SDL_FreeSurface(surface);
@@ -52,10 +55,12 @@ void Mesh::setVertexData(Vertex vertexBuffer) {
 
 void Mesh::setIndices(std::vector<GLuint> indexData) {
     this->indices = indexData;
+    glBindVertexArray(vao);
     glGenBuffers(1, &indexBuffer);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint) * indexData.size(), &indexData[0], GL_STATIC_DRAW);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
 }
 
 void Mesh::setIndices(unsigned int numFaces, const aiFace *faces) {
@@ -69,6 +74,7 @@ void Mesh::setIndices(unsigned int numFaces, const aiFace *faces) {
 }
 
 void Mesh::prepareBuffers() {
+    glBindVertexArray(vao);
     if (!meshData.position.empty()) {
         calculateBoundingBox();
         glGenBuffers(1, &positionBuffer);
@@ -95,6 +101,7 @@ void Mesh::prepareBuffers() {
                      &meshData.textureCoordinate[0], GL_STATIC_DRAW);
     }
     glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
 }
 
 ShaderProgram::block Mesh::getMaterialBlock() {
@@ -111,27 +118,31 @@ ShaderProgram::block Mesh::getMaterialBlock() {
 
 void Mesh::draw() {
     GLObject::draw();
-
+    glBindVertexArray(vao);
     // glGetAttribLocation
     if (!meshData.position.empty()) {
         glBindBuffer(GL_ARRAY_BUFFER, positionBuffer);
         glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, nullptr);
+        glEnableVertexAttribArray(0);
     }
     if (meshData.textureCoordinate.empty()) {
         if (!meshData.dColor.empty()) {
             glBindBuffer(GL_ARRAY_BUFFER, colorBuffer);
             glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, nullptr);
+            glEnableVertexAttribArray(1);
         }
     } else {
         if (!meshData.normal.empty()) {
             glBindBuffer(GL_ARRAY_BUFFER, normalBuffer);
             glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, nullptr);
+            glEnableVertexAttribArray(1);
         }
         if (!meshData.textureCoordinate.empty()) {
             if (!textures.empty()) {
                 for (int i = 0; i < textures.size(); i++) {
                     glBindBuffer(GL_ARRAY_BUFFER, textureCoordinateBuffer);
                     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, nullptr);
+                    glEnableVertexAttribArray(2);
                     glActiveTexture(GL_TEXTURE0 + 2 * i);
                     glBindTexture(GL_TEXTURE_2D, textures[i]->id());
                 }
@@ -146,7 +157,11 @@ void Mesh::draw() {
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
 
+//    if (shader != nullptr)
+//        shader->enable();
     drawElements();
+
+    glBindVertexArray(0);
 
     if (!meshData.position.empty())
         glDisableVertexAttribArray(0);
@@ -164,7 +179,7 @@ void Mesh::draw() {
     }
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
+    glBindVertexArray(0);
     for (auto &i : children)  {
         i->draw();
     }

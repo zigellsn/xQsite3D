@@ -4,13 +4,18 @@
 Scene::Scene() : scene(nullptr) {
 }
 
-void Scene::loadFromFile(const string &filename) {
-    auto *importer = new Assimp::Importer();
+void Scene::loadFromFile(const string &filename, int importMode) {
+    this->mode = importMode;
+
+    blenderCorrectionMatrix = glm::rotate(blenderCorrectionMatrix, -glm::half_pi<float>(), glm::vec3(1.0f, 0.0f, 0.0f));
+    blenderCorrectionMatrix = glm::rotate(blenderCorrectionMatrix, glm::pi<float>(), glm::vec3(0.0f, 0.0f, 1.0f));
+
+    auto *importer = new Assimp::Importer;
     scene = importer->ReadFile(filename,
                                aiProcess_Triangulate | aiProcess_GenSmoothNormals
-                               | aiProcess_FixInfacingNormals | aiProcess_FlipUVs
-                               | aiProcess_GenUVCoords | aiProcess_ImproveCacheLocality
-                               | aiProcess_SortByPType);
+                               | aiProcess_FixInfacingNormals
+                               | aiProcess_GenUVCoords | aiProcess_GenBoundingBoxes
+                               | aiProcess_ImproveCacheLocality | aiProcess_SortByPType);
 }
 
 void Scene::addMesh(Mesh *mesh) {
@@ -36,11 +41,11 @@ void Scene::getAllMeshes(aiNode *node, aiMatrix4x4 transformation,
             Mesh *tmpMesh = getMesh(node->mMeshes[i]);
             transform = node->mTransformation * transformation;
             if (tmpMesh != nullptr) {
-                tmpMesh->setModelMatrix(
-                        glm::mat4(transform.a1, transform.b1, transform.c1, transform.d1,
-                                  transform.a2, transform.b2, transform.c2, transform.d2,
-                                  transform.a3, transform.b3, transform.c3, transform.d3,
-                                  transform.a4, transform.b4, transform.c4, transform.d4));
+                glm::mat4 modelMatrix = glm::mat4(transform.a1, transform.b1, transform.c1, transform.d1,
+                                                  transform.a2, transform.b2, transform.c2, transform.d2,
+                                                  transform.a3, transform.b3, transform.c3, transform.d3,
+                                                  transform.a4, transform.b4, transform.c4, transform.d4);
+                tmpMesh->setModelMatrix(modelMatrix);
                 meshes->push_back(tmpMesh);
             }
         }
@@ -57,12 +62,17 @@ void Scene::getAllMeshes(aiNode *node, aiMatrix4x4 transformation,
 Mesh *Scene::getMesh(unsigned int index) {
     if (scene != nullptr) {
         if (index < scene->mNumMeshes) {
-            //texture *textures = new texture(scene->mMaterials[scene->mMeshes[index]->mMaterialIndex]);
+            if (mode & BLENDER) {
+                for (int i = 0; i < scene->mMeshes[index]->mNumVertices; i++) {
+                    glm::vec4 vert = {scene->mMeshes[index]->mVertices[i].x,
+                                      scene->mMeshes[index]->mVertices[i].y,
+                                      scene->mMeshes[index]->mVertices[i].z,
+                                      1.0f};
+                    vert = blenderCorrectionMatrix * vert;
+                    scene->mMeshes[index]->mVertices[i] = aiVector3D(vert.x, vert.y, vert.z);
+                }
+            }
             Mesh *tmpMesh = new Mesh(scene->mMeshes[index], scene);
-            /*if (textures != nullptr)
-             {
-             tmpMesh->addTexture(textures);
-             }*/
             return tmpMesh;
         }
     }
@@ -71,13 +81,38 @@ Mesh *Scene::getMesh(unsigned int index) {
 
 Mesh *Scene::getMesh(aiMesh *aimesh) {
     if (scene != nullptr) {
-        //texture *textures = new texture(scene->mMaterials[aimesh->mMaterialIndex]);
         Mesh *tmpMesh = new Mesh(aimesh, scene);
-        /*if (textures != nullptr)
-         {
-         tmpMesh->addTexture(textures);
-         }*/
         return tmpMesh;
+    }
+    return nullptr;
+}
+
+vector<Camera *> Scene::getCameras() {
+    vector<Camera *> cameras;
+
+    if (scene != nullptr) {
+        for (unsigned int i = 0; i < scene->mNumCameras; i++) {
+            Camera *tmpCamera = getCamera(i);
+            cameras.push_back(tmpCamera);
+        }
+    }
+    return cameras;
+}
+
+Camera *Scene::getCamera(unsigned int index) {
+    if (scene != nullptr) {
+        if (index < scene->mNumCameras) {
+            aiNode *cameraNode = scene->mRootNode->FindNode(scene->mCameras[index]->mName);
+            auto *tmpCamera = new Camera(cameraNode, scene->mCameras[index], scene);
+            return tmpCamera;
+        }
+    }
+}
+
+Camera *Scene::getCamera(aiNode *ainode, aiCamera *aicamera, int index) {
+    if (scene != nullptr) {
+        auto *tmpCamera = new Camera(ainode, aicamera, scene);
+        return tmpCamera;
     }
     return nullptr;
 }

@@ -1,13 +1,7 @@
 #version 330 core
 
-layout(std140) uniform Matrices
-{
-	mat4 MVP;
-	mat4 M;
-	mat4 V;
-	mat4 P;
-	mat4 N;
-};
+uniform float factor;
+uniform vec2 pos;
 
 layout (location = 0) in vec4 position;
 // layout (location = 1) in vec4 color;
@@ -18,8 +12,6 @@ out vec4 pass_color;
 out vec2 pass_tex_coord;
 
 void main(){
-    pass_color = normal;
-    pass_tex_coord = texture;
-    gl_Position = P * V * M * position;
+    gl_Position = vec4(pos.x / 2.0 + position.x * factor, pos.y / 2.0 + position.y * factor, 0.0, 1.0);
+	pass_tex_coord = texture;
 }
- 

@@ -55,8 +55,6 @@ private:
 
     ShaderProgram::block prepareMVPBlock(glm::mat4 modelMatrix);
 
-    ShaderProgram::block prepareOrthoMVPBlock(glm::mat4 modelMatrix);
-
     void initShaders();
 };
 

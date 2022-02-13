@@ -13,8 +13,20 @@ void Input::ProcessInput(Camera *camera) {
     while (SDL_PollEvent(&event)) {
         switch (event.type) {
             case SDL_MOUSEMOTION:
-                camera->yaw(camera->rotation.x - state->mouseSpeed * (float) event.motion.xrel);
-                camera->pitch(camera->rotation.y - state->mouseSpeed * (float) event.motion.yrel);
+                if (rmb) {
+                    camera->roll((float) event.motion.xrel, state->mouseSpeed);
+                } else {
+                    camera->yaw((float) event.motion.yrel, state->mouseSpeed);
+                    camera->pitch((float) event.motion.xrel, state->mouseSpeed);
+                }
+                break;
+            case SDL_MOUSEBUTTONDOWN:
+                if (event.button.button == SDL_BUTTON_RIGHT)
+                    rmb = true;
+                break;
+            case SDL_MOUSEBUTTONUP:
+                if (event.button.button == SDL_BUTTON_RIGHT)
+                    rmb = false;
                 break;
             case SDL_MOUSEWHEEL:
                 camera->setPerspective(camera->fov - (float) event.wheel.y * 0.1f);
@@ -47,17 +59,25 @@ void Input::ProcessInput(Camera *camera) {
 
     }
     if (keyboardState[SDL_SCANCODE_P]) {
-        camera->position = glm::vec3(0.0f, 0.0f, 15.0f);
-        camera->rotation = glm::vec2(0.0f, 0.0f);
+        camera->position = glm::vec3(0.0f, 0.0f, -15.0f);
+        camera->lookAt = glm::vec3(0.0f, 0.0f, 1.0f);
+    }
+    if (keyboardState[SDL_SCANCODE_I]) {
+        if (state->currentCamera > 0)
+            state->currentCamera--;
+    }
+    if (keyboardState[SDL_SCANCODE_O]) {
+        if (state->currentCamera < 1)
+            state->currentCamera++;
     }
     if (keyboardState[SDL_SCANCODE_LEFT] || keyboardState[SDL_SCANCODE_A]) {
-        camera->left(state->speed);
+        camera->translate(Camera::LEFT, state->speed);
     } else if (keyboardState[SDL_SCANCODE_RIGHT] || keyboardState[SDL_SCANCODE_D]) {
-        camera->right(state->speed);
+        camera->translate(Camera::RIGHT, state->speed);
     }
     if (keyboardState[SDL_SCANCODE_UP] || keyboardState[SDL_SCANCODE_W]) {
-        camera->forward(state->speed);
+        camera->translate(Camera::FORWARD, state->speed);
     } else if (keyboardState[SDL_SCANCODE_DOWN] || keyboardState[SDL_SCANCODE_S]) {
-        camera->backward(state->speed);
+        camera->translate(Camera::BACKWARD, state->speed);
     }
 }

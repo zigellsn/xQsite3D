@@ -71,6 +71,8 @@ protected:
     GLuint indexBuffer;
     BBox boundingBox;
 
+    GLuint vao;
+
     void calculateBoundingBox();
 };
 
