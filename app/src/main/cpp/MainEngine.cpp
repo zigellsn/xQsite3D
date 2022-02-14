@@ -108,6 +108,13 @@ void MainEngine::initShaders() {
     shipShader->appendAttribute("texture");
     shipShader->link();
 
+    ShaderProgram *normalShader = shaderManager->createShader("normal", "res/shader/normal_vertex.glsl",
+                                                              "res/shader/normal_fragment.glsl",
+                                                              "res/shader/normal_geometry.glsl");
+    normalShader->appendAttribute("position");
+    normalShader->appendAttribute("normal");
+    normalShader->link();
+
     ShaderProgram *axisShader = shaderManager->createShader("axis", "res/shader/axis_vertex.glsl",
                                                             "res/shader/axis_fragment.glsl");
     axisShader->appendAttribute("position");
@@ -177,7 +184,7 @@ void MainEngine::Draw() {
 
     for (unsigned int i = 0; i < meshes.size(); i++) {
         if (i == 0) {
-            meshes[i]->rotate(Y_AXIS, 0.01f);
+//            meshes[i]->rotate(Y_AXIS, 0.01f);
         }
         ShaderProgram::block matrices = prepareMVPBlock(meshes[i]->getModelMatrix());
         shaderManager->getShader("ship")->begin();
@@ -188,6 +195,7 @@ void MainEngine::Draw() {
 
         if (state->debug) {
             drawBoundingBox(meshes[i], meshes[i]->getModelMatrix());
+            drawNormals(meshes[i], meshes[i]->getModelMatrix());
         }
     }
 
@@ -240,6 +248,17 @@ void MainEngine::drawBoundingBox(Mesh *mesh, glm::mat4 modelMatrix) {
     shaderManager->getShader("axis")->end();
     for (auto &m: mesh->children) {
         drawBoundingBox(m, modelMatrix);
+    }
+}
+
+void MainEngine::drawNormals(Mesh *mesh, glm::mat4 modelMatrix) {
+    ShaderProgram::block matrices = prepareMVPBlock(modelMatrix);
+    shaderManager->getShader("normal")->begin();
+    shaderManager->getShader("normal")->setUniformBlock("Matrices", matrices);
+    mesh->draw();
+    shaderManager->getShader("normal")->end();
+    for (auto &m: mesh->children) {
+        drawNormals(m, modelMatrix);
     }
 }
 

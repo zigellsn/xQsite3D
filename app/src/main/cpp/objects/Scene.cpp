@@ -83,6 +83,14 @@ Mesh *Scene::getMesh(unsigned int index) {
                     scene->mMeshes[index]->mVertices[i] = aiVector3D(vert.x, vert.y, vert.z);
                     // TODO: Transform UV Coordinates
                 }
+                for (int i = 0; i < scene->mMeshes[index]->mNumVertices; i++) {
+                    glm::vec4 vert = {scene->mMeshes[index]->mNormals[i].x,
+                            scene->mMeshes[index]->mNormals[i].y,
+                            scene->mMeshes[index]->mNormals[i].z,
+                            1.0f};
+                    vert = blenderCorrectionMatrix * vert;
+                    scene->mMeshes[index]->mNormals[i] = aiVector3D(vert.x, vert.y, vert.z);
+                }
                 glm::vec4 min = {scene->mMeshes[index]->mAABB.mMin.x,
                                  scene->mMeshes[index]->mAABB.mMin.y,
                                  scene->mMeshes[index]->mAABB.mMin.z,
