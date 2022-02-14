@@ -184,7 +184,7 @@ void MainEngine::Draw() {
 
     for (unsigned int i = 0; i < meshes.size(); i++) {
         if (i == 0) {
-//            meshes[i]->rotate(Y_AXIS, 0.01f);
+            meshes[i]->rotate(Y_AXIS, 0.01f);
         }
         ShaderProgram::block matrices = prepareMVPBlock(meshes[i]->getModelMatrix());
         shaderManager->getShader("ship")->begin();

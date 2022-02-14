@@ -9,13 +9,12 @@ Mesh::Mesh(const std::string &name) : GLObject(name), indices(), positionBuffer(
 }
 
 Mesh::Mesh(aiMesh *mesh, const aiScene *scene) : Mesh() {
-    aiVector3D *textureCoordinates;
     string dir = "res/textures/";
     this->name = mesh->mName.data;
     this->material = scene->mMaterials[mesh->mMaterialIndex];
 
     unsigned int uvChannels = mesh->GetNumUVChannels();
-    textureCoordinates = nullptr;
+    aiVector3D *textureCoordinates = nullptr;
     for (int j = 0; j < uvChannels; j++) {
         textureCoordinates = mesh->mTextureCoords[j];
         unsigned int textureCount = material->GetTextureCount(aiTextureType_DIFFUSE);
@@ -188,7 +187,7 @@ void Mesh::draw() {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
-    for (auto &i : children)  {
+    for (auto &i: children) {
         i->draw();
     }
 }
