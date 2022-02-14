@@ -10,18 +10,19 @@ Mesh::Mesh(const std::string &name) : GLObject(name), indices(), positionBuffer(
 
 Mesh::Mesh(aiMesh *mesh, const aiScene *scene) : Mesh() {
     string dir = "res/textures/";
-    this->name = mesh->mName.data;
-    this->material = scene->mMaterials[mesh->mMaterialIndex];
+    name = mesh->mName.data;
+    aiMaterial *mat = scene->mMaterials[mesh->mMaterialIndex];
+    fillMaterial(mat);
 
     unsigned int uvChannels = mesh->GetNumUVChannels();
     aiVector3D *textureCoordinates = nullptr;
     for (int j = 0; j < uvChannels; j++) {
         textureCoordinates = mesh->mTextureCoords[j];
-        unsigned int textureCount = material->GetTextureCount(aiTextureType_DIFFUSE);
+        unsigned int textureCount = mat->GetTextureCount(aiTextureType_DIFFUSE);
         for (int i = 0; i < textureCount; i++) {
             aiString Path;
-            if (material->GetTexture(aiTextureType_DIFFUSE, i, &Path, nullptr,
-                                     nullptr, nullptr, nullptr, nullptr) == AI_SUCCESS) {
+            if (mat->GetTexture(aiTextureType_DIFFUSE, i, &Path, nullptr,
+                                nullptr, nullptr, nullptr, nullptr) == AI_SUCCESS) {
                 string path = Path.data;
                 string base_filename = path.substr(path.find_last_of("/\\") + 1);
                 string FullPath = dir + base_filename;
@@ -116,17 +117,21 @@ void Mesh::prepareBuffers() {
 ShaderProgram::block Mesh::getMaterialBlock() {
     float power = 10.0f;
     float blendIndex = textures[0]->getBlendIndex();
-    ShaderProgram::block material;
-    material["Blend"] = {(void *) &blendIndex, sizeof(float)};
-    material["MDiffuse"] = {&getDiffuseColor()[0], 4 * sizeof(float)};
-    material["MAmbient"] = {&getAmbientColor()[0], 4 * sizeof(float)};
-    material["MSpecular"] = {&getSpecularColor()[0], 4 * sizeof(float)};
-    material["Specular_exponent"] = {&power, sizeof(float)};
+    ShaderProgram::block materialBlock;
+    materialBlock["Blend"] = {(void *) &blendIndex, sizeof(float)};
+    materialBlock["MDiffuse"] = {&material.diffuse[0], 4 * sizeof(float)};
+    materialBlock["MAmbient"] = {&material.ambient[0], 4 * sizeof(float)};
+    materialBlock["MSpecular"] = {&material.specular[0], 4 * sizeof(float)};
+    materialBlock["Specular_exponent"] = {&power, sizeof(float)};
+    return materialBlock;
+}
+
+Mesh::Material Mesh::getMaterial() {
     return material;
 }
 
-void Mesh::draw() {
-    GLObject::draw();
+void Mesh::draw(const std::function<void(GLObject *)> &fp) {
+    GLObject::draw(fp);
     glBindVertexArray(vao);
     // glGetAttribLocation
     if (!meshData.position.empty()) {
@@ -166,6 +171,8 @@ void Mesh::draw() {
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
 
+    if (fp != nullptr)
+        fp(this);
     drawElements();
 
     glBindVertexArray(0);
@@ -188,7 +195,7 @@ void Mesh::draw() {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
     for (auto &i: children) {
-        i->draw();
+        i->draw(fp);
     }
 }
 
@@ -215,6 +222,34 @@ void Mesh::calculateBoundingBox() {
 
 Mesh::BBox Mesh::getBBox() {
     return boundingBox;
+}
+
+void Mesh::fillMaterial(aiMaterial *mat) {
+    float blendIndex = 1.0f;
+
+    if (!textures.empty())
+        blendIndex = textures[0]->getBlendIndex();
+
+    material = {
+            blendIndex,
+            getColor(mat, AI_MATKEY_COLOR_AMBIENT),
+            getColor(mat, AI_MATKEY_COLOR_DIFFUSE),
+            getColor(mat, AI_MATKEY_COLOR_SPECULAR),
+            32.0f
+    };
+}
+
+glm::vec4 Mesh::getColor(aiMaterial *mat, const char *key, unsigned int type,
+                         unsigned int idx) {
+    aiColor4D color;
+    if (mat == nullptr) {
+        return glm::vec4(1.0f);
+    }
+    if (mat->Get(key, type, idx, color) == AI_SUCCESS) {
+        glm::vec4 col = glm::vec4(color.r, color.g, color.b, color.a);
+        return col;
+    }
+    return glm::vec4(1.0f);
 }
 
 Mesh::~Mesh() {

@@ -4,6 +4,7 @@
 #include "xQsite3D.h"
 #include "Texture.h"
 #include "ShaderProgram.h"
+#include <functional>
 
 #define X_AXIS 0
 #define Y_AXIS 1
@@ -32,24 +33,13 @@ public:
 
     virtual glm::vec4 getRotation();
 
-    virtual glm::vec4 getColor(const char *key, unsigned int type, unsigned int idx);
-
-    virtual glm::vec4 getDiffuseColor();
-
-    virtual glm::vec4 getAmbientColor();
-
-    virtual glm::vec4 getSpecularColor();
-
-    virtual glm::vec4 getEmissiveColor();
-
-    virtual void draw();
+    virtual void draw(const std::function<void(GLObject *)> &fp);
 
     virtual void addTexture(Texture *texture);
 
 protected:
     std::string name;
     glm::mat4 modelMatrix{};
-    aiMaterial *material;
 
     std::vector<Texture *> textures;
 

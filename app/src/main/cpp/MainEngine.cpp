@@ -66,8 +66,8 @@ void MainEngine::Init() {
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW);
 
-    glClearColor(0.4f, 0.6f, 0.9f, 1.0f);
-    // glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    // glClearColor(0.4f, 0.6f, 0.9f, 1.0f);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
     const unsigned char *version = glGetString(GL_VERSION);
     if (version == nullptr) {
@@ -186,12 +186,28 @@ void MainEngine::Draw() {
         if (i == 0) {
             meshes[i]->rotate(Y_AXIS, 0.01f);
         }
-        ShaderProgram::block matrices = prepareMVPBlock(meshes[i]->getModelMatrix());
-        shaderManager->getShader("ship")->begin();
-        glUniform1i(shaderManager->getShader("ship")->getUniformLocation("textureSampler"), 0);
-        shaderManager->getShader("ship")->setUniformBlock("Matrices", matrices);
-        meshes[i]->draw();
-        shaderManager->getShader("ship")->end();
+        shaderManager->getShader("ship")->invoke([=](ShaderProgram *s) {
+            ShaderProgram::block matrices = prepareMVPBlock(meshes[i]->getModelMatrix());
+            glUniform1i(s->getUniformLocation("textureSampler"), 0);
+            glUniform3f(s->getUniformLocation("lightColor"), 1.0f, 1.0f, 1.0f);
+            glUniform3f(s->getUniformLocation("lightPos"), 1.0f, 1.0f, -15.0f);
+            glUniform3f(s->getUniformLocation("viewPos"),
+                        cameras[state->currentCamera]->position.x,
+                        cameras[state->currentCamera]->position.y,
+                        cameras[state->currentCamera]->position.z);
+            s->setUniformBlock("Matrices", matrices);
+            meshes[i]->draw([=](GLObject *mesh) {
+                auto mat = ((Mesh *) mesh)->getMaterial();
+                glUniform3f(s->getUniformLocation("material.ambient"), mat.ambient.x,
+                            mat.ambient.y, mat.ambient.z);
+                glUniform3f(s->getUniformLocation("material.diffuse"), mat.diffuse.x,
+                            mat.diffuse.y, mat.diffuse.z);
+                glUniform3f(s->getUniformLocation("material.specular"), mat.specular.x,
+                            mat.specular.y, mat.specular.z);
+                glUniform1f(s->getUniformLocation("material.shininess"), mat.power);
+
+            });
+        });
 
         if (state->debug) {
             drawBoundingBox(meshes[i], meshes[i]->getModelMatrix());
@@ -199,12 +215,13 @@ void MainEngine::Draw() {
         }
     }
 
-    shaderManager->getShader("font")->begin();
-    glUniform1f(shaderManager->getShader("font")->getUniformLocation("factor"), font->factor);
-    glUniform2f(shaderManager->getShader("font")->getUniformLocation("pos"), -font->pos.x, font->pos.y);
-    glUniform1i(shaderManager->getShader("font")->getUniformLocation("textureSampler"), 0);
-    font->draw();
-    shaderManager->getShader("font")->end();
+    shaderManager->getShader("font")->invoke([=](ShaderProgram *s) {
+        glUniform1f(s->getUniformLocation("factor"), font->factor);
+        glUniform2f(s->getUniformLocation("pos"), -font->pos.x, font->pos.y);
+        glUniform1i(s->getUniformLocation("textureSampler"), 0);
+        font->draw(nullptr);
+    });
+
 }
 
 ShaderProgram::block MainEngine::prepareMVPBlock(glm::mat4 modelMatrix) {
@@ -231,32 +248,32 @@ MainEngine::~MainEngine() {
 }
 
 void MainEngine::drawAxis() {
-    shaderManager->getShader("axis")->begin();
-    ShaderProgram::block matrices = prepareMVPBlock(glm::mat4(1.0f));
-    shaderManager->getShader("axis")->setUniformBlock("Matrices", matrices);
-    axisObject->draw();
-    shaderManager->getShader("axis")->end();
+    shaderManager->getShader("axis")->invoke([=](ShaderProgram *s) { ;
+        ShaderProgram::block matrices = prepareMVPBlock(glm::mat4(1.0f));
+        s->setUniformBlock("Matrices", matrices);
+        axisObject->draw(nullptr);
+    });
 }
 
 void MainEngine::drawBoundingBox(Mesh *mesh, glm::mat4 modelMatrix) {
-    ShaderProgram::block matrices = prepareMVPBlock(modelMatrix);
-    bBoxObject->setBBox(mesh->getBBox());
-    matrices = prepareMVPBlock(bBoxObject->getTransformedModelMatrix(modelMatrix));
-    shaderManager->getShader("axis")->begin();
-    shaderManager->getShader("axis")->setUniformBlock("Matrices", matrices);
-    bBoxObject->draw();
-    shaderManager->getShader("axis")->end();
+    shaderManager->getShader("axis")->invoke([=](ShaderProgram *s) {
+        ShaderProgram::block matrices = prepareMVPBlock(modelMatrix);
+        bBoxObject->setBBox(mesh->getBBox());
+        matrices = prepareMVPBlock(bBoxObject->getTransformedModelMatrix(modelMatrix));
+        s->setUniformBlock("Matrices", matrices);
+        bBoxObject->draw(nullptr);
+    });
     for (auto &m: mesh->children) {
         drawBoundingBox(m, modelMatrix);
     }
 }
 
 void MainEngine::drawNormals(Mesh *mesh, glm::mat4 modelMatrix) {
-    ShaderProgram::block matrices = prepareMVPBlock(modelMatrix);
-    shaderManager->getShader("normal")->begin();
-    shaderManager->getShader("normal")->setUniformBlock("Matrices", matrices);
-    mesh->draw();
-    shaderManager->getShader("normal")->end();
+    shaderManager->getShader("normal")->invoke([=](ShaderProgram *s) { ;
+        ShaderProgram::block matrices = prepareMVPBlock(modelMatrix);
+        s->setUniformBlock("Matrices", matrices);
+        mesh->draw(nullptr);
+    });
     for (auto &m: mesh->children) {
         drawNormals(m, modelMatrix);
     }

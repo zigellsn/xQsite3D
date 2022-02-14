@@ -7,6 +7,7 @@
 
 #include <map>
 #include "xQsite3D.h"
+#include <functional>
 
 class ShaderProgram {
 public:
@@ -35,9 +36,8 @@ public:
 
     void setUniformBlock(const GLchar *name, block &values);
 
-    void begin() const;
+    void invoke(const std::function<void(ShaderProgram *)> &fp);
 
-    void end();
 
 private:
     static void compile(const std::string &filePath, GLuint id);

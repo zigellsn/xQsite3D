@@ -13,11 +13,16 @@ layout (location = 1) in vec4 normal;
 layout (location = 2) in vec2 texture;
 
 out vec4 pass_color;
+out vec4 pass_normal;
+out vec4 pass_frag_pos;
 out vec2 pass_tex_coord;
 
 void main(){
-    pass_color = normal;
-    pass_tex_coord = texture;
     gl_Position = P * V * M * position;
+    pass_color = normal;
+    // calc N-matrix in app
+    pass_normal = mat4(transpose(inverse(M))) * normal;;
+    pass_tex_coord = texture;
+    pass_frag_pos = M * position;
 }
  

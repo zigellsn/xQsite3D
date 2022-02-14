@@ -1,6 +1,6 @@
 #include "objects/GLObject.h"
 
-GLObject::GLObject(const std::string &name) : material(nullptr), modelMatrix(glm::mat4(1.0f)) {
+GLObject::GLObject(const std::string &name) : modelMatrix(glm::mat4(1.0f)) {
     this->name = name;
 }
 
@@ -43,7 +43,7 @@ glm::vec4 GLObject::getRotation() {
     return ret;
 }
 
-void GLObject::draw() {
+void GLObject::draw(const std::function<void(GLObject *)> &fp) {
 
 }
 
@@ -62,35 +62,6 @@ glm::vec4 GLObject::getScale() {
      ret[1] = this->sy;
      ret[2] = this->sz;*/
     return ret;
-}
-
-glm::vec4 GLObject::getDiffuseColor() {
-    return getColor(AI_MATKEY_COLOR_DIFFUSE);
-}
-
-glm::vec4 GLObject::getSpecularColor() {
-    return getColor(AI_MATKEY_COLOR_SPECULAR);
-}
-
-glm::vec4 GLObject::getEmissiveColor() {
-    return getColor(AI_MATKEY_COLOR_EMISSIVE);
-}
-
-glm::vec4 GLObject::getAmbientColor() {
-    return getColor(AI_MATKEY_COLOR_AMBIENT);
-}
-
-glm::vec4 GLObject::getColor(const char *key, unsigned int type,
-                             unsigned int idx) {
-    aiColor4D color;
-    if (this->material == nullptr) {
-        return glm::vec4(1.0f);
-    }
-    if (this->material->Get(key, type, idx, color) == AI_SUCCESS) {
-        glm::vec4 col = glm::vec4(color.r, color.g, color.b, color.a);
-        return col;
-    }
-    return glm::vec4(1.0f);
 }
 
 glm::mat4 GLObject::getModelMatrix() {

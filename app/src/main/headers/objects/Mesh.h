@@ -33,6 +33,14 @@ public:
         std::vector<TextureCoordinate> textureCoordinate; // Texcoord
     };
 
+    typedef struct Material {
+        float blendIndex;
+        glm::vec4 ambient;
+        glm::vec4 diffuse;
+        glm::vec4 specular;
+        float power;
+    } Material;
+
     typedef std::pair<glm::vec3, glm::vec3> BBox;
 
     explicit Mesh(aiMesh *mesh, const aiScene *scene = nullptr);
@@ -49,7 +57,9 @@ public:
 
     ShaderProgram::block getMaterialBlock();
 
-    void draw() override;
+    Material getMaterial();
+
+    void draw(const std::function<void(GLObject *)> &fp) override;
 
     std::vector<Mesh *> children;
 
@@ -71,9 +81,15 @@ protected:
     GLuint indexBuffer;
     BBox boundingBox;
 
+    Material material;
+
     GLuint vao;
 
     void calculateBoundingBox();
+
+    glm::vec4 getColor(aiMaterial *mat, const char *key, unsigned int type, unsigned int idx);
+
+    void fillMaterial(aiMaterial *mat);
 };
 
 #endif //XQSITE_MESH_H
