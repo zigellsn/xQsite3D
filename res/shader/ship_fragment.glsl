@@ -8,6 +8,9 @@ struct Material {
 
     sampler2D diffuseMap;
     bool useDiffuseMap;
+
+    sampler2D specularMap;
+    bool useSpecularMap;
 };
 
 uniform Material material;
@@ -53,7 +56,12 @@ void main(){
     vec3 viewDir = normalize(viewPos - pass_frag_pos.xyz);
     vec3 reflectDir = reflect(-lightDir.xyz, norm.xyz);
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
-    vec3 tmpSpecular = light.specular * (spec * material.specular);
+    vec3 tmpSpecular = vec3(1.0);
+    if (material.useDiffuseMap == false) {
+        tmpSpecular = light.specular * (spec * material.specular);
+    } else {
+        tmpSpecular = light.specular * spec * vec3(texture(material.specularMap, pass_tex_coord));
+    }
     vec4 specular = vec4(tmpSpecular, 1.0);
 
     out_color = ambient + diffuse + specular;
