@@ -6,7 +6,7 @@
 
 class Light : public GLObject {
 public:
-    explicit Light(glm::vec4 position);
+    explicit Light(aiNode *ainode, aiLight *ailight, const aiScene *scene);
 
     ~Light() override;
 
@@ -21,9 +21,6 @@ public:
     void setSpecular(glm::vec4 color);
 
     void setDiffuse(glm::vec4 color);
-
-protected:
-    void drawElements() override;
 };
 
 #endif //XQSITE_LIGHT_H

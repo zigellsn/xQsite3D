@@ -23,7 +23,7 @@ void Scene::addMesh(Mesh *mesh) {
 }
 
 vector<Mesh *> Scene::getMeshes() {
-    vector<Mesh *> meshes;
+    vector < Mesh * > meshes;
     // mesh *tmpMesh = nullptr;
     if (scene != nullptr) {
         getAllMeshes(scene->mRootNode, scene->mRootNode->mTransformation,
@@ -117,16 +117,8 @@ Mesh *Scene::getMesh(unsigned int index) {
     return nullptr;
 }
 
-Mesh *Scene::getMesh(aiMesh *aimesh) {
-    if (scene != nullptr) {
-        Mesh *tmpMesh = new Mesh(aimesh, scene);
-        return tmpMesh;
-    }
-    return nullptr;
-}
-
 vector<Camera *> Scene::getCameras() {
-    vector<Camera *> cameras;
+    vector < Camera * > cameras;
 
     if (scene != nullptr) {
         for (unsigned int i = 0; i < scene->mNumCameras; i++) {
@@ -141,22 +133,15 @@ Camera *Scene::getCamera(unsigned int index) {
     if (scene != nullptr) {
         if (index < scene->mNumCameras) {
             aiNode *cameraNode = scene->mRootNode->FindNode(scene->mCameras[index]->mName);
-            auto *tmpCamera = new Camera(cameraNode, scene->mCameras[index], scene);
-            return tmpCamera;
+            return new Camera(cameraNode, scene->mCameras[index], scene);
         }
     }
-}
-
-Camera *Scene::getCamera(aiNode *ainode, aiCamera *aicamera, int index) {
-    if (scene != nullptr) {
-        auto *tmpCamera = new Camera(ainode, aicamera, scene);
-        return tmpCamera;
-    }
     return nullptr;
+
 }
 
 vector<Light *> Scene::getLights() {
-    vector<Light *> lights;
+    vector < Light * > lights;
 
     if (scene != nullptr) {
         for (unsigned int i = 0; i < scene->mNumLights; i++) {
@@ -171,42 +156,12 @@ vector<Light *> Scene::getLights() {
 Light *Scene::getLight(unsigned int index) {
     if (scene != nullptr) {
         if (index < scene->mNumLights && index <= GL_MAX_LIGHTS - 1) {
-            aiNode *node = scene->mRootNode->FindNode(
-                    scene->mLights[index]->mName);
-            auto *tmpLight = new Light(glm::vec4(node->mTransformation.a4, node->mTransformation.b4,
-                                                 node->mTransformation.c4, node->mTransformation.d4));
-            tmpLight->setAmbient(glm::vec4(scene->mLights[index]->mColorAmbient.r,
-                                           scene->mLights[index]->mColorAmbient.g,
-                                           scene->mLights[index]->mColorAmbient.b, 1.0f));
-            tmpLight->setDiffuse(glm::vec4(scene->mLights[index]->mColorDiffuse.r,
-                                           scene->mLights[index]->mColorDiffuse.g,
-                                           scene->mLights[index]->mColorDiffuse.b, 1.0f));
-            tmpLight->setSpecular(glm::vec4(scene->mLights[index]->mColorSpecular.r,
-                                            scene->mLights[index]->mColorSpecular.g,
-                                            scene->mLights[index]->mColorSpecular.b, 1.0f));
-            return tmpLight;
+            aiLight *light = scene->mLights[index];
+            aiNode *node = scene->mRootNode->FindNode(light->mName);
+            return new Light(node, light, scene);
         }
     }
     return nullptr;
-}
-
-Light *Scene::getLight(aiLight *ailight, int index) {
-    if (scene != nullptr) {
-        auto *tmpLight = new Light(glm::vec4(ailight->mPosition.x,
-                                             ailight->mPosition.y, ailight->mPosition.z, 1.0f));
-        tmpLight->setAmbient(glm::vec4(ailight->mColorAmbient.r, ailight->mColorAmbient.g,
-                                       ailight->mColorAmbient.b, 1.0f));
-        tmpLight->setDiffuse(glm::vec4(ailight->mColorDiffuse.r, ailight->mColorDiffuse.g,
-                                       ailight->mColorDiffuse.b, 1.0f));
-        tmpLight->setSpecular(glm::vec4(ailight->mColorSpecular.r,
-                                        ailight->mColorSpecular.g, ailight->mColorSpecular.b, 1.0f));
-        return tmpLight;
-    }
-    return nullptr;
-}
-
-void Scene::getAllLights(aiNode *node, aiMatrix4x4 transformation, vector<Light *> *lights) {
-
 }
 
 Scene::~Scene() = default;
