@@ -33,6 +33,7 @@ void GLObject::rotate(int axis, float angle) {
 
 void GLObject::setModelMatrix(glm::mat4 transform) {
     this->modelMatrix = transform;
+    this->normalMatrix = glm::inverseTranspose(this->modelMatrix);
 }
 
 glm::vec4 GLObject::getRotation() {
@@ -66,6 +67,10 @@ glm::vec4 GLObject::getScale() {
 
 glm::mat4 GLObject::getModelMatrix() {
     return modelMatrix;
+}
+
+glm::mat4 GLObject::getNormalMatrix() {
+    return normalMatrix;
 }
 
 GLObject::~GLObject() = default;

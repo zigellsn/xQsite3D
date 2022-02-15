@@ -5,6 +5,7 @@ layout(std140) uniform Matrices
 	mat4 M;
 	mat4 V;
 	mat4 P;
+	mat4 N;
 };
 
 layout(location = 0) in vec4 position;

@@ -53,7 +53,7 @@ private:
     BBoxObject *bBoxObject{};
     Font *font{};
 
-    ShaderProgram::block prepareMVPBlock(glm::mat4 modelMatrix);
+    ShaderProgram::block prepareMVPBlock(glm::mat4 modelMatrix, glm::mat4 normalMatrix = glm::mat4(1.0f));
 
     void initShaders();
 

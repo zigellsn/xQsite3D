@@ -27,6 +27,8 @@ public:
     //void rotate(glm::vec4 vector, float angle);
     virtual glm::mat4 getModelMatrix();
 
+    virtual glm::mat4 getNormalMatrix();
+
     virtual glm::vec4 getPosition();
 
     virtual glm::vec4 getScale();
@@ -40,6 +42,7 @@ public:
 protected:
     std::string name;
     glm::mat4 modelMatrix{};
+    glm::mat4 normalMatrix{};
 
     std::vector<Texture *> textures;
 

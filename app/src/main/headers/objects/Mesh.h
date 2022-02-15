@@ -90,6 +90,9 @@ protected:
     glm::vec4 getColor(aiMaterial *mat, const char *key, unsigned int type, unsigned int idx);
 
     void fillMaterial(aiMaterial *mat);
+
+private:
+    void glDraw(const std::function<void(GLObject *)> &fp);
 };
 
 #endif //XQSITE_MESH_H

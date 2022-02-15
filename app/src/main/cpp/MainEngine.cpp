@@ -164,13 +164,6 @@ void MainEngine::ImportScene(const string &filename) {
         cam->flipX = true;
     }
     lights = sl->getLights();
-
-    /*l = sl->getLight(1);
-     if (l != nullptr) {
-     l->setPosition(2.0f, 2.0f, -2.0f);
-     lights.push_back(l);
-     }*/
-
 }
 
 void MainEngine::Draw() {
@@ -178,19 +171,12 @@ void MainEngine::Draw() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     drawAxis();
-//    for (auto &light: lights) {
-//        light->draw(shipShader, viewMatrix);
-//    }
-
     for (unsigned int i = 0; i < meshes.size(); i++) {
         if (i == 0) {
             meshes[i]->rotate(Y_AXIS, 0.01f);
         }
         shaderManager->getShader("ship")->invoke([=](ShaderProgram *s) {
-            ShaderProgram::block matrices = prepareMVPBlock(meshes[i]->getModelMatrix());
-            glUniform1i(s->getUniformLocation("textureSampler"), 0);
-            glUniform3f(s->getUniformLocation("lightColor"), 1.0f, 1.0f, 1.0f);
-            glUniform3f(s->getUniformLocation("lightPos"), 1.0f, 1.0f, -15.0f);
+            ShaderProgram::block matrices = prepareMVPBlock(meshes[i]->getModelMatrix(), meshes[i]->getNormalMatrix());
             glUniform3f(s->getUniformLocation("viewPos"),
                         cameras[state->currentCamera]->position.x,
                         cameras[state->currentCamera]->position.y,
@@ -205,7 +191,17 @@ void MainEngine::Draw() {
                 glUniform3f(s->getUniformLocation("material.specular"), mat.specular.x,
                             mat.specular.y, mat.specular.z);
                 glUniform1f(s->getUniformLocation("material.shininess"), mat.power);
-
+                glUniform1i(s->getUniformLocation("material.diffuseMap"), 0);
+                glUniform1i(s->getUniformLocation("material.useDiffuseMap"), GL_TRUE);
+                for (auto &l: lights) {
+                    glUniform3f(s->getUniformLocation("light.position"),
+                                l->getPosition().x,
+                                l->getPosition().y,
+                                l->getPosition().z);
+                    glUniform3f(s->getUniformLocation("light.ambient"), l->ambient.x, l->ambient.y, l->ambient.z);
+                    glUniform3f(s->getUniformLocation("light.diffuse"), l->diffuse.x, l->diffuse.y, l->diffuse.z);
+                    glUniform3f(s->getUniformLocation("light.specular"), l->specular.x, l->specular.y, l->specular.z);
+                }
             });
         });
 
@@ -224,14 +220,12 @@ void MainEngine::Draw() {
 
 }
 
-ShaderProgram::block MainEngine::prepareMVPBlock(glm::mat4 modelMatrix) {
-    glm::mat4 MVP =
-            cameras[state->currentCamera]->projectionMatrix * cameras[state->currentCamera]->viewMatrix * modelMatrix;
-    glm::mat4 N = glm::inverseTranspose(cameras[state->currentCamera]->viewMatrix * modelMatrix);
+ShaderProgram::block MainEngine::prepareMVPBlock(glm::mat4 modelMatrix, glm::mat4 normalMatrix) {
     ShaderProgram::block matrices;
     matrices["M"] = {(void *) &modelMatrix[0][0], 16 * sizeof(float)};
     matrices["V"] = {(void *) &cameras[state->currentCamera]->viewMatrix[0][0], 16 * sizeof(float)};
     matrices["P"] = {(void *) &cameras[state->currentCamera]->projectionMatrix[0][0], 16 * sizeof(float)};
+    matrices["N"] = {(void *) &normalMatrix[0][0], 16 * sizeof(float)};
     return matrices;
 }
 
@@ -248,7 +242,7 @@ MainEngine::~MainEngine() {
 }
 
 void MainEngine::drawAxis() {
-    shaderManager->getShader("axis")->invoke([=](ShaderProgram *s) { ;
+    shaderManager->getShader("axis")->invoke([=](ShaderProgram *s) {
         ShaderProgram::block matrices = prepareMVPBlock(glm::mat4(1.0f));
         s->setUniformBlock("Matrices", matrices);
         axisObject->draw(nullptr);
@@ -269,7 +263,7 @@ void MainEngine::drawBoundingBox(Mesh *mesh, glm::mat4 modelMatrix) {
 }
 
 void MainEngine::drawNormals(Mesh *mesh, glm::mat4 modelMatrix) {
-    shaderManager->getShader("normal")->invoke([=](ShaderProgram *s) { ;
+    shaderManager->getShader("normal")->invoke([=](ShaderProgram *s) {
         ShaderProgram::block matrices = prepareMVPBlock(modelMatrix);
         s->setUniformBlock("Matrices", matrices);
         mesh->draw(nullptr);

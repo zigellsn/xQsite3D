@@ -10,13 +10,11 @@ public:
 
     ~Light() override;
 
-    void draw(glm::mat4 view);
+    glm::vec4 ambient{};
 
-    glm::vec4 getAmbient();
+    glm::vec4 specular{};
 
-    glm::vec4 getSpecular();
-
-    glm::vec4 getDiffuse();
+    glm::vec4 diffuse{};
 
     void setAmbient(glm::vec4 color);
 
@@ -25,10 +23,6 @@ public:
     void setDiffuse(glm::vec4 color);
 
 protected:
-    glm::vec4 ambient{};
-    glm::vec4 specular{};
-    glm::vec4 diffuse{};
-
     void drawElements() override;
 };
 

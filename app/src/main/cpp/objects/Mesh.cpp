@@ -132,6 +132,18 @@ Mesh::Material Mesh::getMaterial() {
 
 void Mesh::draw(const std::function<void(GLObject *)> &fp) {
     GLObject::draw(fp);
+    if (!meshData.position.empty()) {
+        glDraw(fp);
+    } else {
+        if (fp != nullptr)
+            fp(this);
+    }
+    for (auto &i: children) {
+        i->draw(fp);
+    }
+}
+
+void Mesh::glDraw(const std::function<void(GLObject *)> &fp) {
     glBindVertexArray(vao);
     // glGetAttribLocation
     if (!meshData.position.empty()) {
@@ -173,6 +185,7 @@ void Mesh::draw(const std::function<void(GLObject *)> &fp) {
 
     if (fp != nullptr)
         fp(this);
+
     drawElements();
 
     glBindVertexArray(0);
@@ -194,9 +207,6 @@ void Mesh::draw(const std::function<void(GLObject *)> &fp) {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
-    for (auto &i: children) {
-        i->draw(fp);
-    }
 }
 
 void Mesh::drawElements() {
