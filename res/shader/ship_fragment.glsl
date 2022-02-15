@@ -22,7 +22,8 @@ struct Light {
     vec3 specular;
 };
 
-uniform Light light;
+#define NR_POINT_LIGHTS 4
+uniform Light light[NR_POINT_LIGHTS];
 
 out vec4 out_color;
 
@@ -32,24 +33,25 @@ in vec2 pass_tex_coord;
 
 uniform vec3 viewPos;
 
-void main(){
+vec4 CalcLight(Light singleLight)
+{
     vec3 tmpAmbient = vec3(1.0);
     if (material.useDiffuseMap == false) {
-        tmpAmbient = light.ambient * material.ambient;
+        tmpAmbient = singleLight.ambient * material.ambient;
     } else {
-        tmpAmbient = light.ambient * vec3(texture(material.diffuseMap, pass_tex_coord));
+        tmpAmbient = singleLight.ambient * vec3(texture(material.diffuseMap, pass_tex_coord));
     }
     vec4 ambient = vec4(tmpAmbient, 1.0);
 
 
     vec4 norm = normalize(pass_normal);
-    vec4 lightDir = normalize(vec4(light.position, 1.0) - pass_frag_pos);
+    vec4 lightDir = normalize(vec4(singleLight.position, 1.0) - pass_frag_pos);
     float diff = max(dot(norm, lightDir), 0.0);
     vec3 tmpDiffuse = vec3(1.0);
     if (material.useDiffuseMap == false) {
-        tmpDiffuse = light.diffuse * (diff * material.diffuse);
+        tmpDiffuse = singleLight.diffuse * (diff * material.diffuse);
     } else {
-        tmpDiffuse = light.diffuse * diff * vec3(texture(material.diffuseMap, pass_tex_coord));
+        tmpDiffuse = singleLight.diffuse * diff * vec3(texture(material.diffuseMap, pass_tex_coord));
     }
     vec4 diffuse = vec4(tmpDiffuse, 1.0);
 
@@ -58,11 +60,21 @@ void main(){
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
     vec3 tmpSpecular = vec3(1.0);
     if (material.useDiffuseMap == false) {
-        tmpSpecular = light.specular * (spec * material.specular);
+        tmpSpecular = singleLight.specular * (spec * material.specular);
     } else {
-        tmpSpecular = light.specular * spec * vec3(texture(material.specularMap, pass_tex_coord));
+        tmpSpecular = singleLight.specular * spec * vec3(texture(material.specularMap, pass_tex_coord));
     }
     vec4 specular = vec4(tmpSpecular, 1.0);
 
-    out_color = ambient + diffuse + specular;
+    return ambient + diffuse + specular;
+}
+
+
+void main(){
+
+    vec4 output_color = vec4(0.0);
+    for(int i = 0; i < NR_POINT_LIGHTS; i++)
+        output_color += CalcLight(light[i]);
+
+    out_color = output_color;
 }

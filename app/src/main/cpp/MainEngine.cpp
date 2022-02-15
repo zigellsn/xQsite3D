@@ -193,14 +193,15 @@ void MainEngine::Draw() {
                 glUniform1f(s->getUniformLocation("material.shininess"), mat.power);
                 glUniform1i(s->getUniformLocation("material.diffuseMap"), 0);
                 glUniform1i(s->getUniformLocation("material.useDiffuseMap"), GL_TRUE);
-                for (auto &l: lights) {
-                    glUniform3f(s->getUniformLocation("light.position"),
+                for (int i = 0; i < lights.size(); i++) {
+                    Light *l = lights[i];
+                    glUniform3f(s->getUniformLocation("light[" + to_string(i) + "].position"),
                                 l->getPosition().x,
                                 l->getPosition().y,
                                 l->getPosition().z);
-                    glUniform3f(s->getUniformLocation("light.ambient"), l->ambient.x, l->ambient.y, l->ambient.z);
-                    glUniform3f(s->getUniformLocation("light.diffuse"), l->diffuse.x, l->diffuse.y, l->diffuse.z);
-                    glUniform3f(s->getUniformLocation("light.specular"), l->specular.x, l->specular.y, l->specular.z);
+                    glUniform3f(s->getUniformLocation("light[" + to_string(i) + "].ambient"), l->ambient.x, l->ambient.y, l->ambient.z);
+                    glUniform3f(s->getUniformLocation("light[" + to_string(i) + "].diffuse"), l->diffuse.x, l->diffuse.y, l->diffuse.z);
+                    glUniform3f(s->getUniformLocation("light[" + to_string(i) + "].specular"), l->specular.x, l->specular.y, l->specular.z);
                 }
             });
         });
