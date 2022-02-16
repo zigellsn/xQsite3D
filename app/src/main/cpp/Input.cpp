@@ -70,6 +70,12 @@ void Input::ProcessInput(Camera *camera, const std::function<void(Uint32)> &fp) 
     if (keyboardState[SDL_SCANCODE_O]) {
         fp(SDL_SCANCODE_O);
     }
+    if (keyboardState[SDL_SCANCODE_K]) {
+        fp(SDL_SCANCODE_K);
+    }
+    if (keyboardState[SDL_SCANCODE_L]) {
+        fp(SDL_SCANCODE_L);
+    }
     if (keyboardState[SDL_SCANCODE_LEFT] || keyboardState[SDL_SCANCODE_A]) {
         state->currentObject->translate(Camera::LEFT, state->speed);
     } else if (keyboardState[SDL_SCANCODE_RIGHT] || keyboardState[SDL_SCANCODE_D]) {

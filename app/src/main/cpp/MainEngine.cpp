@@ -135,6 +135,12 @@ void MainEngine::MainLoop() {
                 case SDL_SCANCODE_I:
                     state->currentCamera = "mCamera";
                     break;
+                case SDL_SCANCODE_K:
+                    state->currentObject = meshes["Ship"];
+                    break;
+                case SDL_SCANCODE_L:
+                    state->currentObject = cameras[state->currentCamera];
+                    break;
                 default:
                     break;
             }

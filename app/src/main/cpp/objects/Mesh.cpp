@@ -135,6 +135,8 @@ void Mesh::draw(const std::function<void(GLObject *)> &fp) {
     if (!meshData.position.empty()) {
         glDraw(fp);
     }
+    if (fp != nullptr)
+        fp(this);
     for (auto &i: children) {
         i.second->draw(fp);
     }
