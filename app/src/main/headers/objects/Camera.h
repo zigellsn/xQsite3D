@@ -10,7 +10,7 @@
 #include "assimp/scene.h"
 #include "GLObject.h"
 
-class Camera : GLObject {
+class Camera : public GLObject {
 public:
 
     enum class Mode {
@@ -25,14 +25,10 @@ public:
     constexpr static const glm::vec3 UP = {0.0f, 1.0f, 0.0f};
     constexpr static const glm::vec3 DOWN = {0.0f, -1.0f, 0.0f};
 
-    glm::mat4 modelMatrix;
     glm::mat4 viewMatrix;
     glm::mat4 projectionMatrix;
 
     glm::vec3 lookAt;
-    glm::vec3 position;
-    glm::vec3 up;
-    glm::vec3 direction;
 
     float fov;
     float aspect;
@@ -41,25 +37,22 @@ public:
 
     Mode mode = Mode::FLY;
 
-    bool flipX = false;
-    bool flipY = false;
-
     std::string name;
 
     explicit Camera(glm::vec3 position = glm::vec3(0.0f, 0.0f, -15.0f), glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f),
                     glm::vec3 lookAt = glm::vec3(0.0f, 0.0f, 1.0f));
 
-    Camera(aiNode *ainode, aiCamera *aicamera, const aiScene *scene = nullptr);
+    Camera(aiNode *node, aiCamera *camera, const aiScene *scene = nullptr);
 
     void setPerspective(float newFov, float newAspect = 4.0f / 3.0f, float newNear = 0.1f, float newFar = 100.0f);
 
-    void translate(glm::vec3 moveDirection, float speed = 1.0f);
+    void translate(glm::vec3 moveDirection, float speed) override;
 
-    void roll(float angle, float speed = 1.0f);
+    void roll(float angle, float speed) override;
 
-    void yaw(float angle, float speed = 1.0f);
+    void yaw(float angle, float speed) override;
 
-    void pitch(float angle, float speed = 1.0f);
+    void pitch(float angle, float speed) override;
 
 private:
     void updateViewMatrix();

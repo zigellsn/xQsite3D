@@ -6,7 +6,7 @@
 
 class Light : public GLObject {
 public:
-    explicit Light(aiNode *ainode, aiLight *ailight, const aiScene *scene);
+    explicit Light(aiNode *node, aiLight *light, const aiScene *scene);
 
     ~Light() override;
 

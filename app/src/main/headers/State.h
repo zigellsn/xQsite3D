@@ -6,6 +6,7 @@
 #define SDLTEST_STATE_H
 
 #include "xQsite3D.h"
+#include "objects/GLObject.h"
 
 enum class GState {
     RUNNING, STOPPED
@@ -24,7 +25,8 @@ public:
 
     float maxFPS = 60.0f;
     GLfloat fps = 0.0f;
-    unsigned int currentCamera = 0;
+    std::string currentCamera;
+    GLObject *currentObject = nullptr;
 };
 
 

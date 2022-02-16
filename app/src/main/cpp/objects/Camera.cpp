@@ -21,28 +21,28 @@ Camera::Camera(glm::vec3 position, glm::vec3 up, glm::vec3 lookAt) : GLObject() 
     updateViewMatrix();
 }
 
-Camera::Camera(aiNode *ainode, aiCamera *aicamera, const aiScene *scene)
+Camera::Camera(aiNode *node, aiCamera *camera, const aiScene *scene)
         : GLObject() {
-    name = ainode->mName.data;
-    position = glm::vec3(aicamera->mPosition.x, aicamera->mPosition.y, aicamera->mPosition.z);
-    up = glm::vec3(aicamera->mUp.x, aicamera->mUp.y, aicamera->mUp.z);
-    lookAt = glm::vec3(aicamera->mLookAt.x, aicamera->mLookAt.y, aicamera->mLookAt.z);
+    name = node->mName.data;
+    position = glm::vec3(camera->mPosition.x, camera->mPosition.y, camera->mPosition.z);
+    up = glm::vec3(camera->mUp.x, camera->mUp.y, camera->mUp.z);
+    lookAt = glm::vec3(camera->mLookAt.x, camera->mLookAt.y, camera->mLookAt.z);
 
-    setPerspective(aicamera->mHorizontalFOV, aicamera->mAspect,
-                   aicamera->mClipPlaneNear, aicamera->mClipPlaneFar);
+    setPerspective(camera->mHorizontalFOV, camera->mAspect,
+                   camera->mClipPlaneNear, camera->mClipPlaneFar);
 
-    if (ainode == nullptr) {
+    if (node == nullptr) {
         modelMatrix = glm::mat4(1);
     }
     aiMatrix4x4 m4;
-    while (ainode != scene->mRootNode) {
-        m4 = ainode->mTransformation * m4;
-        ainode = ainode->mParent;
+    while (node != scene->mRootNode) {
+        m4 = node->mTransformation * m4;
+        node = node->mParent;
     }
 
     aiMatrix4x4 aim;
-    aicamera->GetCameraMatrix(aim);
-    m4 = aim * (ainode->mTransformation * m4);
+    camera->GetCameraMatrix(aim);
+    m4 = aim * (node->mTransformation * m4);
 
     modelMatrix = glm::mat4(m4.a1, m4.b1, m4.c1, m4.d1,
                             m4.a2, m4.b2, m4.c2, m4.d2,

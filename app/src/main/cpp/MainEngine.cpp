@@ -87,7 +87,7 @@ void MainEngine::Init() {
 
     auto *camera = new Camera(glm::vec3(0.0f, 0.0f, -15.0f), glm::vec3(0.0f, 1.0f, 0.0f));
     camera->setPerspective(0.6911f, float(SCREEN_WIDTH) / float(SCREEN_HEIGHT), 0.1f, 100.0f);
-    cameras.push_back(camera);
+    cameras["mCamera"] = camera;
 
     initShaders();
     state->state = GState::RUNNING;
@@ -127,7 +127,18 @@ void MainEngine::MainLoop() {
     while (state->state == GState::RUNNING) {
         auto startTicks = (float) SDL_GetTicks64();
 
-        input->ProcessInput(cameras[state->currentCamera]);
+        input->ProcessInput(cameras[state->currentCamera], [=](Uint32 key) {
+            switch (key) {
+                case SDL_SCANCODE_O:
+                    state->currentCamera = "Camera";
+                    break;
+                case SDL_SCANCODE_I:
+                    state->currentCamera = "mCamera";
+                    break;
+                default:
+                    break;
+            }
+        });
         Draw();
         SDL_GL_SwapWindow(win);
         calcFPS();
@@ -157,13 +168,15 @@ void MainEngine::ImportScene(const string &filename) {
     sl->loadFromFile(filename, BLENDER);
 
     meshes = sl->getMeshes();
-    std::vector<Camera *> c = sl->getCameras();
-    cameras.insert(cameras.end(), c.begin(), c.end());
+    auto c = sl->getCameras();
+    cameras.insert(c.begin(), c.end());
     for (auto &cam: cameras) {
-        cam->flipY = true;
-        cam->flipX = true;
+        cam.second->flipY = true;
+        cam.second->flipX = true;
+        state->currentCamera = cam.first;
     }
     lights = sl->getLights();
+    state->currentObject = meshes["Ship"];
 }
 
 void MainEngine::Draw() {
@@ -171,18 +184,19 @@ void MainEngine::Draw() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     drawAxis();
-    for (unsigned int i = 0; i < meshes.size(); i++) {
-        if (i == 0) {
-            meshes[i]->rotate(Y_AXIS, 0.01f);
-        }
+    for (auto &mesh: meshes) {
+        auto m = mesh.second;
+//        if (mesh.first == "Ship") {
+//            m->pitch(-0.01f, 1.0f);
+//        }
         shaderManager->getShader("ship")->invoke([=](ShaderProgram *s) {
-            ShaderProgram::block matrices = prepareMVPBlock(meshes[i]->getModelMatrix(), meshes[i]->getNormalMatrix());
+            ShaderProgram::block matrices = prepareMVPBlock(m->getModelMatrix(), m->getNormalMatrix());
             glUniform3f(s->getUniformLocation("viewPos"),
                         cameras[state->currentCamera]->position.x,
                         cameras[state->currentCamera]->position.y,
                         cameras[state->currentCamera]->position.z);
             s->setUniformBlock("Matrices", matrices);
-            meshes[i]->draw([=](GLObject *mesh) {
+            m->draw([=](GLObject *mesh) {
                 auto mat = ((Mesh *) mesh)->getMaterial();
                 glUniform3f(s->getUniformLocation("material.ambient"), mat.ambient.x,
                             mat.ambient.y, mat.ambient.z);
@@ -193,9 +207,10 @@ void MainEngine::Draw() {
                 glUniform1f(s->getUniformLocation("material.shininess"), mat.power);
                 glUniform1i(s->getUniformLocation("material.diffuseMap"), 0);
                 glUniform1i(s->getUniformLocation("material.useDiffuseMap"), GL_TRUE);
-                for (int i = 0; i < lights.size(); i++) {
+                int i = 0;
+                for (auto &light: lights) {
+                    auto l = light.second;
                     auto index = to_string(i);
-                    Light *l = lights[i];
                     glUniform3f(s->getUniformLocation("light[" + index + "].position"),
                                 l->getPosition().x,
                                 l->getPosition().y,
@@ -206,13 +221,14 @@ void MainEngine::Draw() {
                                 l->diffuse.z);
                     glUniform3f(s->getUniformLocation("light[" + index + "].specular"), l->specular.x, l->specular.y,
                                 l->specular.z);
+                    i++;
                 }
             });
         });
 
         if (state->debug) {
-            drawBoundingBox(meshes[i], meshes[i]->getModelMatrix());
-            drawNormals(meshes[i], meshes[i]->getModelMatrix());
+            drawBoundingBox(m, m->getModelMatrix());
+            drawNormals(m, m->getModelMatrix());
         }
     }
 
@@ -236,7 +252,7 @@ ShaderProgram::block MainEngine::prepareMVPBlock(glm::mat4 modelMatrix, glm::mat
 
 MainEngine::~MainEngine() {
     for (auto &mesh: meshes) {
-        delete mesh;
+        delete mesh.second;
     }
 
     SDL_GL_DeleteContext(mainGLContext);
@@ -263,7 +279,7 @@ void MainEngine::drawBoundingBox(Mesh *mesh, glm::mat4 modelMatrix) {
         bBoxObject->draw(nullptr);
     });
     for (auto &m: mesh->children) {
-        drawBoundingBox(m, modelMatrix);
+        drawBoundingBox(m.second, modelMatrix);
     }
 }
 
@@ -274,7 +290,7 @@ void MainEngine::drawNormals(Mesh *mesh, glm::mat4 modelMatrix) {
         mesh->draw(nullptr);
     });
     for (auto &m: mesh->children) {
-        drawNormals(m, modelMatrix);
+        drawNormals(m.second, modelMatrix);
     }
 }
 

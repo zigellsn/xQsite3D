@@ -42,9 +42,9 @@ private:
     SDL_Window *win;
     SDL_GLContext mainGLContext;
 
-    vector<Mesh *> meshes;
-    vector<Camera *> cameras;
-    vector<Light *> lights;
+    std::map<std::string, Mesh *> meshes;
+    std::map<std::string, Camera *> cameras;
+    std::map<std::string, Light *> lights;
 
     State *state;
     Input *input;

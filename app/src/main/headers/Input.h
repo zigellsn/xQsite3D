@@ -14,7 +14,7 @@ class Input {
 public:
     Input(State *state);
 
-    void ProcessInput(Camera *camera);
+    void ProcessInput(Camera *camera, const std::function<void(Uint32)> &fp = nullptr);
 
 private:
     State *state;

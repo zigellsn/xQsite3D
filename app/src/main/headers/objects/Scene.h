@@ -18,24 +18,24 @@ public:
 
     void loadFromFile(const string &filename, int importMode = 0);
 
-    vector<Mesh *> getMeshes();
+    std::map<std::string, Mesh *> getMeshes();
 
-    Mesh *getMesh(unsigned int index);
+    Mesh *getMesh(unsigned int index, aiNode *node);
 
-    vector<Camera *> getCameras();
+    std::map<std::string, Camera *> getCameras();
 
     Camera *getCamera(unsigned int index);
 
-    vector<Light *> getLights();
+    std::map<std::string, Light *> getLights();
 
     Light *getLight(unsigned int index);
 
     void addMesh(Mesh *mesh);
 
-    vector<Mesh *> additional_meshes;
+    std::map<std::string, Mesh *> additional_meshes;
 
 private:
-    void getAllMeshes(aiNode *node, aiMatrix4x4 transformation, vector<Mesh *> *meshes);
+    void getAllMeshes(aiNode *node, aiMatrix4x4 transformation, std::map<std::string, Mesh *> *meshes);
 
     const aiScene *scene;
 

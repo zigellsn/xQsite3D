@@ -19,12 +19,11 @@ void Scene::loadFromFile(const string &filename, int importMode) {
 }
 
 void Scene::addMesh(Mesh *mesh) {
-    additional_meshes.push_back(mesh);
+    additional_meshes[mesh->name] = mesh;
 }
 
-vector<Mesh *> Scene::getMeshes() {
-    vector < Mesh * > meshes;
-    // mesh *tmpMesh = nullptr;
+std::map<std::string, Mesh *> Scene::getMeshes() {
+    std::map<std::string, Mesh *> meshes;
     if (scene != nullptr) {
         getAllMeshes(scene->mRootNode, scene->mRootNode->mTransformation,
                      &meshes);
@@ -33,7 +32,7 @@ vector<Mesh *> Scene::getMeshes() {
 }
 
 void Scene::getAllMeshes(aiNode *node, aiMatrix4x4 transformation,
-                         vector<Mesh *> *meshes) {
+                         std::map<std::string, Mesh *> *meshes) {
     aiMatrix4x4 transform;
     Mesh *tmpMesh;
     if (node->mNumMeshes > 0) {
@@ -45,7 +44,7 @@ void Scene::getAllMeshes(aiNode *node, aiMatrix4x4 transformation,
                           transform.a3, transform.b3, transform.c3, transform.d3,
                           transform.a4, transform.b4, transform.c4, transform.d4));
         for (unsigned int i = 0; i < node->mNumMeshes; i++) {
-            tmpMesh = getMesh(node->mMeshes[i]);
+            tmpMesh = getMesh(node->mMeshes[i], node);
             transform = node->mTransformation * transformation;
             if (tmpMesh != nullptr) {
                 tmpMesh->setModelMatrix(
@@ -53,13 +52,13 @@ void Scene::getAllMeshes(aiNode *node, aiMatrix4x4 transformation,
                                   transform.a2, transform.b2, transform.c2, transform.d2,
                                   transform.a3, transform.b3, transform.c3, transform.d3,
                                   transform.a4, transform.b4, transform.c4, transform.d4));
-                tmpParentMesh->children.push_back(tmpMesh);
+                tmpParentMesh->children[tmpMesh->name] = tmpMesh;
                 for (unsigned int j = 0; j < node->mNumChildren; j++) {
                     getAllMeshes(node->mChildren[j], transform, &tmpMesh->children);
                 }
             }
         }
-        meshes->push_back(tmpParentMesh);
+        meshes->insert(std::pair<std::string, Mesh *>(tmpParentMesh->name, tmpParentMesh));
     } else {
         transform = node->mTransformation * transformation;
         for (unsigned int i = 0; i < node->mNumChildren; i++) {
@@ -67,10 +66,10 @@ void Scene::getAllMeshes(aiNode *node, aiMatrix4x4 transformation,
         }
     }
 
-    meshes->insert(meshes->end(), additional_meshes.begin(), additional_meshes.end());
+    meshes->insert(additional_meshes.begin(), additional_meshes.end());
 }
 
-Mesh *Scene::getMesh(unsigned int index) {
+Mesh *Scene::getMesh(unsigned int index, aiNode *node) {
     if (scene != nullptr) {
         if (index < scene->mNumMeshes) {
             if (mode & BLENDER) {
@@ -110,20 +109,20 @@ Mesh *Scene::getMesh(unsigned int index) {
                 max = blenderCorrectionMatrix * max;
                 scene->mMeshes[index]->mAABB.mMax = aiVector3D(max.x, max.y, max.z);
             }
-            Mesh *tmpMesh = new Mesh(scene->mMeshes[index], scene);
+            Mesh *tmpMesh = new Mesh(node, scene->mMeshes[index], scene);
             return tmpMesh;
         }
     }
     return nullptr;
 }
 
-vector<Camera *> Scene::getCameras() {
-    vector < Camera * > cameras;
+std::map<std::string, Camera *> Scene::getCameras() {
+    std::map<std::string, Camera *> cameras;
 
     if (scene != nullptr) {
         for (unsigned int i = 0; i < scene->mNumCameras; i++) {
             Camera *tmpCamera = getCamera(i);
-            cameras.push_back(tmpCamera);
+            cameras[tmpCamera->name] = tmpCamera;
         }
     }
     return cameras;
@@ -140,14 +139,14 @@ Camera *Scene::getCamera(unsigned int index) {
 
 }
 
-vector<Light *> Scene::getLights() {
-    vector < Light * > lights;
+std::map<std::string, Light *> Scene::getLights() {
+    std::map<std::string, Light *> lights;
 
     if (scene != nullptr) {
         for (unsigned int i = 0; i < scene->mNumLights; i++) {
             Light *tmpLight = getLight(i);
             if (tmpLight != nullptr)
-                lights.push_back(tmpLight);
+                lights[tmpLight->name] = tmpLight;
         }
     }
     return lights;

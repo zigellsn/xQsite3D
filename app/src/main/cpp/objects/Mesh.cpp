@@ -8,7 +8,7 @@ Mesh::Mesh(const std::string &name) : GLObject(name), indices(), positionBuffer(
     glGenVertexArrays(1, &vao);
 }
 
-Mesh::Mesh(aiMesh *mesh, const aiScene *scene) : Mesh() {
+Mesh::Mesh(aiNode *node, aiMesh *mesh, const aiScene *scene) : Mesh() {
     string dir = "res/textures/";
     name = mesh->mName.data;
     aiMaterial *mat = scene->mMaterials[mesh->mMaterialIndex];
@@ -134,12 +134,9 @@ void Mesh::draw(const std::function<void(GLObject *)> &fp) {
     GLObject::draw(fp);
     if (!meshData.position.empty()) {
         glDraw(fp);
-    } else {
-        if (fp != nullptr)
-            fp(this);
     }
     for (auto &i: children) {
-        i->draw(fp);
+        i.second->draw(fp);
     }
 }
 
