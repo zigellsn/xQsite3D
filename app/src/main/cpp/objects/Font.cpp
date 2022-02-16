@@ -21,12 +21,18 @@ void Font::renderText(const std::string &Text, glm::vec4 color) {
     SDL_PixelFormat *format = SDL_AllocFormat(SDL_PIXELFORMAT_RGBA32);
     SDL_Surface *output = SDL_ConvertSurface(message, format, 0);
     SDL_FreeFormat(format);
+    if (!textures.empty()) {
+        for (auto &t : textures)
+            delete t;
+        textures.clear();
+    }
+
     textures.push_back(textureFromSurface(output));
     SDL_FreeSurface(message);
     TTF_CloseFont(ttffont);
 
-    float aspect = (float) textures[0]->height() / (float) textures[0]->width();
-    height = aspect * width;
+    float aspect = (float) textures[0]->width() / (float) textures[0]->height();
+    width = aspect * height;
 
     Mesh::Vertex data = {{{0.0f, 0.0f, 0.0f, 1.0f}, {width, 0.0f, 0.0f, 1.0f}, {width, -height, 0.0f, 1.0f}, {0.0f, -height, 0.0f, 1.0f}},
                          {},

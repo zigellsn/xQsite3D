@@ -82,8 +82,8 @@ void MainEngine::Init() {
     axisObject = (Mesh *) new AxisObject(5.0f);
     bBoxObject = new BBoxObject();
     font = new Font("./res/font/ONESIZE_.TTF", 50);
-    font->renderText("Text Test", {1.0f, 0.0f, 0.0f, 1.0f});
-    font->factor = 0.5f;
+    font->height = 0.05f;
+    font->renderText("fps: 0.0", {1.0f, 0.0f, 0.0f, 1.0f});
 
     auto *camera = new Camera(glm::vec3(0.0f, 0.0f, -15.0f), glm::vec3(0.0f, 1.0f, 0.0f));
     camera->setPerspective(0.6911f, float(SCREEN_WIDTH) / float(SCREEN_HEIGHT), 0.1f, 100.0f);
@@ -166,6 +166,7 @@ void MainEngine::Update() {
     std::ostringstream o;
     o << state->fps;
     string title = "OpenGL Test fps: " + o.str();
+    font->renderText("fps: " + o.str(), {1.0f, 0.0f, 0.0f, 1.0f});
     SDL_SetWindowTitle(win, title.c_str());
 }
 
@@ -239,8 +240,7 @@ void MainEngine::Draw() {
     }
 
     shaderManager->getShader("font")->invoke([=](ShaderProgram *s) {
-        glUniform1f(s->getUniformLocation("factor"), font->factor);
-        glUniform2f(s->getUniformLocation("pos"), -font->pos.x, font->pos.y);
+        glUniform2f(s->getUniformLocation("pos"), -2.0f, 2.0f);
         glUniform1i(s->getUniformLocation("textureSampler"), 0);
         font->draw(nullptr);
     });

@@ -13,12 +13,11 @@ public:
     glm::vec2 getSize() const;
 
     glm::vec2 pos{};
-    float factor = 1.0f;
+    float height;
 
 private:
     std::string fontname;
     int size;
-    float height;
     float width;
 protected:
     void drawElements() override;
