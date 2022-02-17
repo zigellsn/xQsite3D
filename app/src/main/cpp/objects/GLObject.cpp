@@ -5,20 +5,18 @@ GLObject::GLObject(const std::string &name) : modelMatrix(glm::mat4(1.0f)), norm
 }
 
 void GLObject::translate(glm::vec3 moveDirection, float speed) {
-    glm::vec3 right = {modelMatrix[0][0],
-                       modelMatrix[1][0],
-                       modelMatrix[2][0]};
+    glm::vec3 right = modelMatrix[0];
     glm::mat3 newMatrix = glm::mat4(1.0f);
-//    // if (mode == Mode::FLY) {
-//        newMatrix = glm::mat3(right, up, direction);
-//    } else {
+    if (mode == Mode::FLY) {
+        newMatrix = glm::mat3(right, up, direction);
+    } else {
         newMatrix = glm::mat3({1.0f, 0.0f, 0.0f},
                               {0.0f, 1.0f, 0.0f},
                               {direction.x, 0.0f, direction.z});
-//    }
+    }
     glm::vec3 nDirection = glm::normalize(moveDirection);
     nDirection = newMatrix * moveDirection;
-    position += nDirection * speed;
+    position -= nDirection * speed;
     updateModelMatrix();
 }
 
@@ -42,7 +40,7 @@ void GLObject::pitch(float angle, float speed) {
 void GLObject::yaw(float angle, float speed) {
     if (flipY)
         angle = -angle;
-    glm::vec3 right = {modelMatrix[0][0], modelMatrix[1][0], modelMatrix[2][0]};
+    glm::vec3 right = modelMatrix[0];
     up = glm::normalize(glm::rotate(up, angle * speed, right));
     direction = glm::normalize(glm::cross(right, up));
     updateModelMatrix();

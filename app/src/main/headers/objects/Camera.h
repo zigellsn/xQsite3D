@@ -13,18 +13,6 @@
 class Camera : public GLObject {
 public:
 
-    enum class Mode {
-        FLY,
-        WALK
-    };
-
-    constexpr static const glm::vec3 FORWARD = {0.0f, 0.0f, -1.0f};
-    constexpr static const glm::vec3 BACKWARD = {0.0f, 0.0f, 1.0f};
-    constexpr static const glm::vec3 LEFT = {-1.0f, 0.0f, 0.0f};
-    constexpr static const glm::vec3 RIGHT = {1.0f, 0.0f, 0.0f};
-    constexpr static const glm::vec3 UP = {0.0f, 1.0f, 0.0f};
-    constexpr static const glm::vec3 DOWN = {0.0f, -1.0f, 0.0f};
-
     glm::mat4 viewMatrix;
     glm::mat4 projectionMatrix;
 
@@ -34,8 +22,6 @@ public:
     float aspect;
     float near;
     float far;
-
-    Mode mode = Mode::FLY;
 
     std::string name;
 

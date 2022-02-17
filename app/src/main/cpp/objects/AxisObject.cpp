@@ -5,29 +5,25 @@
 #include "objects/AxisObject.h"
 
 
-AxisObject::AxisObject(float length) {
+AxisObject::AxisObject() {
     setIndices({0, 1, 2, 3, 4, 5});
-    setLength(length);
+    Mesh::Vertex axis = {{{0.5f, 0.0f, 0.0f, 1.0f},
+                                 {-0.5f, 0.0f, 0.0f, 1.0f},
+                                 {0.0f, 0.5f, 0.0f, 1.0f},
+                                 {0.0f, -0.5f, 0.0f, 1.0f},
+                                 {0.0f, 0.0f, 0.5f, 1.0f},
+                                 {0.0f, 0.0f, -0.5f, 1.0f}},
+                         {{1.0f, 0.0f, 0.0f, 1.0f},
+                                 {1.0f,  0.0f, 0.0f, 1.0f},
+                                 {0.0f, 1.0f, 0.0f, 1.0f},
+                                 {0.0f, 1.0f,  0.0f, 1.0f},
+                                 {0.0f, 0.0f, 1.0f, 1.0f},
+                                 {0.0f, 0.0f, 1.0f,  1.0f}}
+    };
+    setVertexData(axis);
 }
 
 void AxisObject::drawElements() {
     glDrawElements(GL_LINES, indices.size(), GL_UNSIGNED_INT, nullptr);
 }
 
-void AxisObject::setLength(float newLength) {
-    this->length = newLength;
-    Mesh::Vertex axis = {{{this->length, 0.0f, 0.0f, 1.0f},
-                                 {-this->length, 0.0f, 0.0f, 1.0f},
-                                 {0.0f, this->length, 0.0f, 1.0f},
-                                 {0.0f, -this->length, 0.0f, 1.0f},
-                                 {0.0f, 0.0f, this->length, 1.0f},
-                                 {0.0f, 0.0f, -this->length, 1.0f}},
-                         {{1.0f,         0.0f, 0.0f, 1.0f},
-                                 {1.0f,          0.0f, 0.0f, 1.0f},
-                                 {0.0f, 1.0f,         0.0f, 1.0f},
-                                 {0.0f, 1.0f,          0.0f, 1.0f},
-                                 {0.0f, 0.0f, 1.0f,         1.0f},
-                                 {0.0f, 0.0f, 1.0f,          1.0f}}
-    };
-    setVertexData(axis);
-}

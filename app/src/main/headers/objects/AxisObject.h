@@ -6,19 +6,15 @@
 #define XQSITE_AXISOBJECT_H
 
 
-#include "Mesh.h"
+#include "DebugObject.h"
 
-class AxisObject : public Mesh {
+class AxisObject : public DebugObject {
 public:
-    explicit AxisObject(float length = 1.0f);
-
-    void setLength(float newLength = 1.0f);
+    explicit AxisObject();
 
 protected:
     void drawElements() override;
 
-private:
-    float length = 1.0f;
 };
 
 

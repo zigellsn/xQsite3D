@@ -18,8 +18,8 @@ void Input::ProcessInput(Camera *camera, const std::function<void(Uint32)> &fp) 
                 if (rmb) {
                     state->currentObject->roll((float) event.motion.xrel, state->mouseSpeed);
                 } else {
-                    state->currentObject->yaw((float) event.motion.yrel, state->mouseSpeed);
                     state->currentObject->pitch((float) event.motion.xrel, state->mouseSpeed);
+                    state->currentObject->yaw((float) event.motion.yrel, state->mouseSpeed);
                 }
                 break;
             case SDL_MOUSEBUTTONDOWN:

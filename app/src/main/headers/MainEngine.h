@@ -7,7 +7,6 @@
 #include "objects/Font.h"
 #include "State.h"
 #include "Input.h"
-#include "objects/BBoxObject.h"
 #include "ShaderManager.h"
 
 using namespace std;
@@ -32,7 +31,7 @@ private:
 
     void calcFPS();
 
-    void drawAxis();
+    void drawMainAxis();
 
     Uint32 flags;
 
@@ -50,7 +49,7 @@ private:
     Input *input;
     ShaderManager *shaderManager;
     Mesh *axisObject{};
-    BBoxObject *bBoxObject{};
+    Mesh *bBoxObject{};
     Font *font{};
 
     ShaderProgram::block prepareMVPBlock(glm::mat4 modelMatrix, glm::mat4 normalMatrix = glm::mat4(1.0f));
@@ -58,7 +57,10 @@ private:
     void initShaders();
 
     void drawBoundingBox(Mesh *mesh, glm::mat4 modelMatrix);
+
     void drawNormals(Mesh *mesh, glm::mat4 modelMatrix);
+
+    void drawAxis(Mesh *mesh, glm::mat4 modelMatrix);
 };
 
 #endif //SDLTEST_MAINENGINE_H

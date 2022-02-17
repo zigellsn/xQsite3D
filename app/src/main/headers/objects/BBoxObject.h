@@ -6,24 +6,16 @@
 #define XQSITE_BBOXOBJECT_H
 
 
-#include "Mesh.h"
+#include "DebugObject.h"
 
-class BBoxObject : public Mesh {
+class BBoxObject : public DebugObject {
 public:
     explicit BBoxObject(Mesh::Color color = {1.0f, 0.0f, 0.0f, 1.0f});
 
-    void setBBox(BBox boundingBox);
-
     void setColor(Mesh::Color newColor = {1.0f, 0.0f, 0.0f, 1.0f});
-
-    glm::mat4 getTransformedModelMatrix(glm::mat4 modelMatrix) const;
 
 protected:
     void drawElements() override;
-
-private:
-
-    glm::vec4 color = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
 
 };
 

@@ -79,7 +79,7 @@ void MainEngine::Init() {
     IMG_Init(IMG_INIT_JPG | IMG_INIT_PNG);
     TTF_Init();
 
-    axisObject = (Mesh *) new AxisObject(5.0f);
+    axisObject = new AxisObject();
     bBoxObject = new BBoxObject();
     font = new Font("./res/font/ONESIZE_.TTF", 50);
     font->height = 0.05f;
@@ -190,12 +190,10 @@ void MainEngine::Draw() {
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    drawAxis();
+    if (state->debug)
+        drawMainAxis();
     for (auto &mesh: meshes) {
         auto m = mesh.second;
-//        if (mesh.first == "Ship") {
-//            m->pitch(-0.01f, 1.0f);
-//        }
         shaderManager->getShader("ship")->invoke([=](ShaderProgram *s) {
             ShaderProgram::block matrices = prepareMVPBlock(m->getModelMatrix(), m->getNormalMatrix());
             glUniform3f(s->getUniformLocation("viewPos"),
@@ -236,6 +234,7 @@ void MainEngine::Draw() {
         if (state->debug) {
             drawBoundingBox(m, m->getModelMatrix());
             drawNormals(m, m->getModelMatrix());
+            drawAxis(m, m->getModelMatrix());
         }
     }
 
@@ -268,9 +267,12 @@ MainEngine::~MainEngine() {
     SDL_Quit();
 }
 
-void MainEngine::drawAxis() {
+void MainEngine::drawMainAxis() {
     shaderManager->getShader("axis")->invoke([=](ShaderProgram *s) {
-        ShaderProgram::block matrices = prepareMVPBlock(glm::mat4(1.0f));
+        ShaderProgram::block matrices = prepareMVPBlock(
+                ((AxisObject *) axisObject)->getTransformedModelMatrix(glm::mat4(1.0f),
+                                                                       Mesh::BBox{{-5.0f, -5.0f, -5.0f},
+                                                                                  {5.0f,  5.0f,  5.0f}}));
         s->setUniformBlock("Matrices", matrices);
         axisObject->draw(nullptr);
     });
@@ -278,9 +280,8 @@ void MainEngine::drawAxis() {
 
 void MainEngine::drawBoundingBox(Mesh *mesh, glm::mat4 modelMatrix) {
     shaderManager->getShader("axis")->invoke([=](ShaderProgram *s) {
-        ShaderProgram::block matrices = prepareMVPBlock(modelMatrix);
-        bBoxObject->setBBox(mesh->getBBox());
-        matrices = prepareMVPBlock(bBoxObject->getTransformedModelMatrix(modelMatrix));
+        ShaderProgram::block matrices = prepareMVPBlock(
+                ((BBoxObject *) bBoxObject)->getTransformedModelMatrix(modelMatrix, mesh->getBBox()));
         s->setUniformBlock("Matrices", matrices);
         bBoxObject->draw(nullptr);
     });
@@ -297,6 +298,21 @@ void MainEngine::drawNormals(Mesh *mesh, glm::mat4 modelMatrix) {
     });
     for (auto &m: mesh->children) {
         drawNormals(m.second, modelMatrix);
+    }
+}
+
+void MainEngine::drawAxis(Mesh *mesh, glm::mat4 modelMatrix) {
+    shaderManager->getShader("axis")->invoke([=](ShaderProgram *s) {
+        Mesh::BBox bBox = mesh->getBBox();
+        bBox.first = bBox.first * 1.5f;
+        bBox.second = bBox.second * 1.5f;
+        ShaderProgram::block matrices = prepareMVPBlock(
+                ((AxisObject *) axisObject)->getTransformedModelMatrix(modelMatrix, bBox));
+        s->setUniformBlock("Matrices", matrices);
+        axisObject->draw(nullptr);
+    });
+    for (auto &m: mesh->children) {
+        drawAxis(m.second, modelMatrix);
     }
 }
 

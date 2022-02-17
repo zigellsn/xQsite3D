@@ -11,13 +11,13 @@ BBoxObject::BBoxObject(Mesh::Color color) {
 
 void BBoxObject::setColor(Mesh::Color newColor) {
     Mesh::Vertex box = {{{-0.5, -0.5, -0.5, 1.0},
-                                {0.5,  -0.5, -0.5, 1.0},
-                                {0.5,  0.5,  -0.5, 1.0},
-                                {-0.5, 0.5,  -0.5, 1.0},
-                                {-0.5, -0.5, 0.5,  1.0},
-                                {0.5,  -0.5, 0.5,  1.0},
-                                {0.5,  0.5,  0.5,  1.0},
-                                {-0.5, 0.5,  0.5,  1.0}},
+                                {0.5, -0.5, -0.5, 1.0},
+                                {0.5, 0.5, -0.5, 1.0},
+                                {-0.5, 0.5, -0.5, 1.0},
+                                {-0.5, -0.5, 0.5, 1.0},
+                                {0.5, -0.5, 0.5, 1.0},
+                                {0.5, 0.5, 0.5, 1.0},
+                                {-0.5, 0.5, 0.5, 1.0}},
                         {newColor,
                                 newColor,
                                 newColor,
@@ -28,23 +28,6 @@ void BBoxObject::setColor(Mesh::Color newColor) {
                                 newColor}
     };
     setVertexData(box);
-}
-
-void BBoxObject::setBBox(Mesh::BBox newBoundingBox) {
-    this->boundingBox = newBoundingBox;
-}
-
-glm::mat4 BBoxObject::getTransformedModelMatrix(glm::mat4 modelMatrix) const {
-    glm::vec3 size = glm::vec3(boundingBox.second.x - boundingBox.first.x,
-                               boundingBox.second.y - boundingBox.first.y,
-                               boundingBox.second.z - boundingBox.first.z);
-    glm::vec3 center = glm::vec3((boundingBox.first.x + boundingBox.second.x) / 2,
-                                 (boundingBox.first.y + boundingBox.second.y) / 2,
-                                 (boundingBox.first.z + boundingBox.second.z) / 2);
-    glm::mat4 transform = glm::translate(glm::mat4(1), center)
-                          * glm::scale(glm::mat4(1), size);
-
-    return modelMatrix * transform;
 }
 
 void BBoxObject::drawElements() {

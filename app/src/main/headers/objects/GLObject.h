@@ -7,10 +7,6 @@
 #include "glm/gtx/rotate_vector.hpp"
 #include <functional>
 
-#define X_AXIS 0
-#define Y_AXIS 1
-#define Z_AXIS 2
-
 class GLObject {
 public:
     explicit GLObject(const std::string &name = "");
@@ -44,6 +40,20 @@ public:
     bool flipX = false;
     bool flipY = false;
     std::string name;
+
+    enum class Mode {
+        FLY,
+        WALK
+    };
+
+    constexpr static const glm::vec3 FORWARD = {0.0f, 0.0f, -1.0f};
+    constexpr static const glm::vec3 BACKWARD = {0.0f, 0.0f, 1.0f};
+    constexpr static const glm::vec3 LEFT = {-1.0f, 0.0f, 0.0f};
+    constexpr static const glm::vec3 RIGHT = {1.0f, 0.0f, 0.0f};
+    constexpr static const glm::vec3 UP = {0.0f, 1.0f, 0.0f};
+    constexpr static const glm::vec3 DOWN = {0.0f, -1.0f, 0.0f};
+
+    Mode mode = Mode::FLY;
 
 protected:
     glm::mat4 modelMatrix{};
