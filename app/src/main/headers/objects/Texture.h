@@ -8,11 +8,15 @@ class Texture;
 
 Texture *textureFromSurface(SDL_Surface *surface);
 
+Texture *cubeMapFromSurfaces(std::vector<SDL_Surface *> surfaces);
+
 class Texture {
 public:
     virtual ~Texture() = default;
 
     virtual GLuint id() const = 0;
+
+    virtual GLuint target() const = 0;
 
     virtual int width() const = 0;
 
@@ -41,6 +45,8 @@ public:
 
     GLuint id() const override { return m_id; }
 
+    GLuint target() const override { return GL_TEXTURE_2D; }
+
     int width() const override { return m_width; }
 
     int height() const override { return m_height; }
@@ -59,8 +65,10 @@ public:
 
     void initFromSurface(SDL_Surface *surface);
 
-private:
+protected:
     GLuint m_id;
+
+private:
     int m_width;
     int m_height;
     int m_stored_width;
@@ -68,11 +76,22 @@ private:
     float blendIndex;
 };
 
+class CubeMap : public SimpleTexture {
+public:
+    explicit CubeMap(int width = 0, int height = 0);
+
+    void loadCubeMap(std::vector<SDL_Surface *> faces);
+
+    GLuint target() const override { return GL_TEXTURE_CUBE_MAP; }
+};
+
 class textureSlice : public Texture {
 public:
     textureSlice(Texture *parent, int x, int y, int width, int height);
 
     GLuint id() const override { return m_parent->id(); }
+
+    GLuint target() const override { return m_parent->target(); }
 
     int width() const override { return m_width; }
 

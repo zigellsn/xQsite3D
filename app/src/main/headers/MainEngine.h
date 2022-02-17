@@ -50,6 +50,7 @@ private:
     ShaderManager *shaderManager;
     Mesh *axisObject{};
     Mesh *bBoxObject{};
+    Mesh *skyBox{};
     Font *font{};
 
     ShaderProgram::block prepareMVPBlock(glm::mat4 modelMatrix, glm::mat4 normalMatrix = glm::mat4(1.0f));
@@ -61,6 +62,8 @@ private:
     void drawNormals(Mesh *mesh, glm::mat4 modelMatrix);
 
     void drawAxis(Mesh *mesh, glm::mat4 modelMatrix);
+
+    void drawSkyBox();
 };
 
 #endif //SDLTEST_MAINENGINE_H

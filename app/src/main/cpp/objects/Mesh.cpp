@@ -25,8 +25,8 @@ Mesh::Mesh(aiNode *node, aiMesh *mesh, const aiScene *scene) : Mesh() {
                                 nullptr, nullptr, nullptr, nullptr) == AI_SUCCESS) {
                 string path = Path.data;
                 string base_filename = path.substr(path.find_last_of("/\\") + 1);
-                string FullPath = dir + base_filename;
-                SDL_Surface *surface = IMG_Load(FullPath.c_str());
+                string fullPath = dir + base_filename;
+                SDL_Surface *surface = IMG_Load(fullPath.c_str());
                 textures.push_back(textureFromSurface(surface));
                 SDL_FreeSurface(surface);
             }
@@ -150,35 +150,35 @@ void Mesh::glDraw(const std::function<void(GLObject *)> &fp) {
         glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, nullptr);
         glEnableVertexAttribArray(0);
     }
-    if (meshData.textureCoordinate.empty()) {
-        if (!meshData.dColor.empty()) {
+    if (!meshData.dColor.empty()) {
+        if (meshData.textureCoordinate.empty()) {
             glBindBuffer(GL_ARRAY_BUFFER, colorBuffer);
             glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, nullptr);
             glEnableVertexAttribArray(1);
         }
-    } else {
-        if (!meshData.normal.empty()) {
-            glBindBuffer(GL_ARRAY_BUFFER, normalBuffer);
-            glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, nullptr);
-            glEnableVertexAttribArray(1);
-        }
-        if (!meshData.textureCoordinate.empty()) {
-            if (!textures.empty()) {
-                for (int i = 0; i < textures.size(); i++) {
-                    glBindBuffer(GL_ARRAY_BUFFER, textureCoordinateBuffer);
-                    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, nullptr);
-                    glEnableVertexAttribArray(2);
-                    glActiveTexture(GL_TEXTURE0 + 2 * i);
-                    glBindTexture(GL_TEXTURE_2D, textures[i]->id());
-                }
-            } else {
-                glActiveTexture(GL_TEXTURE0);
-                glBindTexture(GL_TEXTURE_2D, 0);
-            }
-            glEnable(GL_BLEND);
-            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        }
     }
+
+    if (!meshData.normal.empty()) {
+        glBindBuffer(GL_ARRAY_BUFFER, normalBuffer);
+        glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, nullptr);
+        glEnableVertexAttribArray(1);
+    }
+    if (!textures.empty()) {
+        for (int i = 0; i < textures.size(); i++) {
+            if (!meshData.textureCoordinate.empty()) {
+                glBindBuffer(GL_ARRAY_BUFFER, textureCoordinateBuffer);
+                glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, nullptr);
+                glEnableVertexAttribArray(2);
+            }
+            glActiveTexture(GL_TEXTURE0 + 2 * i);
+            glBindTexture(textures[i]->target(), textures[i]->id());
+        }
+    } else {
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, 0);
+    }
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
 
@@ -191,17 +191,18 @@ void Mesh::glDraw(const std::function<void(GLObject *)> &fp) {
 
     if (!meshData.position.empty())
         glDisableVertexAttribArray(0);
-    if (meshData.textureCoordinate.empty()) {
-        if (!meshData.dColor.empty())
+    if (!meshData.dColor.empty())
+        if (meshData.textureCoordinate.empty()) {
             glDisableVertexAttribArray(1);
-    } else {
-        if (!meshData.normal.empty())
-            glDisableVertexAttribArray(1);
-        if (!meshData.textureCoordinate.empty()) {
-            glDisableVertexAttribArray(2);
-            glBindTexture(GL_TEXTURE_2D, 0);
-            glDisable(GL_BLEND);
         }
+    if (!meshData.normal.empty())
+        glDisableVertexAttribArray(1);
+    if (!textures.empty()) {
+        glBindTexture(textures[0]->target(), 0);
+        glDisable(GL_BLEND);
+    }
+    if (!meshData.textureCoordinate.empty()) {
+        glDisableVertexAttribArray(2);
     }
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
@@ -274,4 +275,12 @@ Mesh::~Mesh() {
         glDeleteBuffers(1, &indexBuffer);
     for (auto &i: textures)
         delete i;
+}
+
+std::vector<GLuint> Mesh::generateDefaultIndices(const Mesh::Vertex &data) {
+    std::vector<GLuint> ind;
+    for (unsigned int i = 0; i < data.position.size(); i++) {
+        ind.push_back(i);
+    }
+    return ind;
 }

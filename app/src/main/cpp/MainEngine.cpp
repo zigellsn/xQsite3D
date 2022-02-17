@@ -7,6 +7,7 @@
 #include "objects/Font.h"
 #include "objects/AxisObject.h"
 #include "objects/BBoxObject.h"
+#include "objects/SkyBox.h"
 
 MainEngine::MainEngine(int w, int h, bool fullscreen) {
     flags = SDL_WINDOW_OPENGL;
@@ -66,8 +67,8 @@ void MainEngine::Init() {
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW);
 
-    // glClearColor(0.4f, 0.6f, 0.9f, 1.0f);
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClearColor(0.4f, 0.6f, 0.9f, 1.0f);
+    // glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
     const unsigned char *version = glGetString(GL_VERSION);
     if (version == nullptr) {
@@ -84,10 +85,6 @@ void MainEngine::Init() {
     font = new Font("./res/font/ONESIZE_.TTF", 50);
     font->height = 0.05f;
     font->renderText("fps: 0.0", {1.0f, 0.0f, 0.0f, 1.0f});
-
-    auto *camera = new Camera(glm::vec3(0.0f, 0.0f, -15.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-    camera->setPerspective(0.6911f, float(SCREEN_WIDTH) / float(SCREEN_HEIGHT), 0.1f, 100.0f);
-    cameras["mCamera"] = camera;
 
     initShaders();
     state->state = GState::RUNNING;
@@ -120,6 +117,11 @@ void MainEngine::initShaders() {
     axisShader->appendAttribute("position");
     axisShader->appendAttribute("color");
     axisShader->link();
+
+    ShaderProgram *skyBoxShader = shaderManager->createShader("skybox", "res/shader/skybox_vertex.glsl",
+                                                              "res/shader/skybox_fragment.glsl");
+    skyBoxShader->appendAttribute("position");
+    skyBoxShader->link();
 }
 
 void MainEngine::MainLoop() {
@@ -171,6 +173,19 @@ void MainEngine::Update() {
 }
 
 void MainEngine::ImportScene(const string &filename) {
+    auto *camera = new Camera(glm::vec3(0.0f, 0.0f, -15.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    camera->setPerspective(0.6911f, float(SCREEN_WIDTH) / float(SCREEN_HEIGHT), 0.1f, 100.0f);
+    cameras["mCamera"] = camera;
+
+    skyBox = new SkyBox({
+                                "skybox/right.jpg",
+                                "skybox/left.jpg",
+                                "skybox/top.jpg",
+                                "skybox/bottom.jpg",
+                                "skybox/front.jpg",
+                                "skybox/back.jpg"
+                        });
+
     auto *sl = new Scene();
     sl->loadFromFile(filename, BLENDER);
 
@@ -237,13 +252,12 @@ void MainEngine::Draw() {
             drawAxis(m, m->getModelMatrix());
         }
     }
-
+    drawSkyBox();
     shaderManager->getShader("font")->invoke([=](ShaderProgram *s) {
         glUniform2f(s->getUniformLocation("pos"), -2.0f, 2.0f);
         glUniform1i(s->getUniformLocation("textureSampler"), 0);
         font->draw(nullptr);
     });
-
 }
 
 ShaderProgram::block MainEngine::prepareMVPBlock(glm::mat4 modelMatrix, glm::mat4 normalMatrix) {
@@ -314,6 +328,18 @@ void MainEngine::drawAxis(Mesh *mesh, glm::mat4 modelMatrix) {
     for (auto &m: mesh->children) {
         drawAxis(m.second, modelMatrix);
     }
+}
+
+void MainEngine::drawSkyBox() {
+    shaderManager->getShader("skybox")->invoke([=](ShaderProgram *s) {
+        ShaderProgram::block matrices;
+        ((SkyBox *) skyBox)->setViewMatrix(cameras[state->currentCamera]->viewMatrix);
+        matrices["V"] = {(void *) &((SkyBox *) skyBox)->viewMatrix[0][0], 16 * sizeof(float)};
+        matrices["P"] = {(void *) &cameras[state->currentCamera]->projectionMatrix[0][0], 16 * sizeof(float)};
+        s->setUniformBlock("Matrices", matrices);
+        glUniform1i(s->getUniformLocation("skybox"), 0);
+        skyBox->draw(nullptr);
+    });
 }
 
 void MainEngine::calcFPS() {

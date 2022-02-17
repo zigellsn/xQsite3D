@@ -67,6 +67,8 @@ protected:
 
     void setIndices(unsigned int numFaces, const aiFace *faces);
 
+    static std::vector<GLuint> generateDefaultIndices(const Vertex &data);
+
     void drawElements() override;
 
     void prepareBuffers();
