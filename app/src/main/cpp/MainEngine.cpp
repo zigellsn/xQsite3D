@@ -40,6 +40,11 @@ void MainEngine::Init() {
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
 
+    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
+    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 8);
+
+    SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
+
     SDL_SetRelativeMouseMode(SDL_TRUE);
 
     win = SDL_CreateWindow("OpenGL Test", SDL_WINDOWPOS_UNDEFINED,
@@ -66,6 +71,8 @@ void MainEngine::Init() {
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW);
+
+    glEnable(GL_MULTISAMPLE);
 
     glClearColor(0.4f, 0.6f, 0.9f, 1.0f);
     // glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
