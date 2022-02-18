@@ -10,6 +10,8 @@ Texture *textureFromSurface(SDL_Surface *surface);
 
 Texture *cubeMapFromSurfaces(std::vector<SDL_Surface *> surfaces);
 
+Texture *cubeMapFromSurface(SDL_Surface * surface);
+
 class Texture {
 public:
     virtual ~Texture() = default;
@@ -81,6 +83,8 @@ public:
     explicit CubeMap(int width = 0, int height = 0);
 
     void loadCubeMap(std::vector<SDL_Surface *> faces);
+
+    void loadCubeMap(SDL_Surface *surface);
 
     GLuint target() const override { return GL_TEXTURE_CUBE_MAP; }
 };

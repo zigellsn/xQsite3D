@@ -26,6 +26,12 @@ Texture *cubeMapFromSurfaces(std::vector<SDL_Surface *> surfaces) {
     return rv;
 }
 
+Texture *cubeMapFromSurface(SDL_Surface *surfaces) {
+    auto *rv = new CubeMap(0, 0);
+    rv->loadCubeMap(surfaces);
+    return rv;
+}
+
 Texture *Texture::slice(int x, int y, int width, int height) {
     return new textureSlice(this, x, y, width, height);
 }
@@ -116,6 +122,87 @@ void CubeMap::loadCubeMap(std::vector<SDL_Surface *> faces) {
     glTexParameteri(target(), GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexParameteri(target(), GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
     glBindTexture(target(), 0);
+}
+
+void CubeMap::loadCubeMap(SDL_Surface *surface) {
+    int h = surface->h / 3;
+    int w = surface->w / 4;
+    std::vector<SDL_Surface *> faces;
+    SDL_Surface *part = SDL_CreateRGBSurface(
+            SDL_SWSURFACE,
+            w, h,
+            surface->format->BitsPerPixel,
+            surface->format->Rmask,
+            surface->format->Gmask,
+            surface->format->Bmask,
+            surface->format->Amask);
+    SDL_Rect srcrect = {2 * w, h, w, h};
+    SDL_BlitSurface(surface, &srcrect, part, nullptr);
+    faces.push_back(part);
+
+    part = SDL_CreateRGBSurface(
+            SDL_SWSURFACE,
+            w, h,
+            surface->format->BitsPerPixel,
+            surface->format->Rmask,
+            surface->format->Gmask,
+            surface->format->Bmask,
+            surface->format->Amask);
+    srcrect = {0, h, w, h};
+    SDL_BlitSurface(surface, &srcrect, part, nullptr);
+    faces.push_back(part);
+
+    part = SDL_CreateRGBSurface(
+            SDL_SWSURFACE,
+            w, h,
+            surface->format->BitsPerPixel,
+            surface->format->Rmask,
+            surface->format->Gmask,
+            surface->format->Bmask,
+            surface->format->Amask);
+    srcrect = {w, 0, w, h};
+    SDL_BlitSurface(surface, &srcrect, part, nullptr);
+    faces.push_back(part);
+
+    part = SDL_CreateRGBSurface(
+            SDL_SWSURFACE,
+            w, h,
+            surface->format->BitsPerPixel,
+            surface->format->Rmask,
+            surface->format->Gmask,
+            surface->format->Bmask,
+            surface->format->Amask);
+    srcrect = {w, 2 * h, w, h};
+    SDL_BlitSurface(surface, &srcrect, part, nullptr);
+    faces.push_back(part);
+
+    part = SDL_CreateRGBSurface(
+            SDL_SWSURFACE,
+            w, h,
+            surface->format->BitsPerPixel,
+            surface->format->Rmask,
+            surface->format->Gmask,
+            surface->format->Bmask,
+            surface->format->Amask);
+    srcrect = {w, h, w, h};
+    SDL_BlitSurface(surface, &srcrect, part, nullptr);
+    faces.push_back(part);
+
+    part = SDL_CreateRGBSurface(
+            SDL_SWSURFACE,
+            w, h,
+            surface->format->BitsPerPixel,
+            surface->format->Rmask,
+            surface->format->Gmask,
+            surface->format->Bmask,
+            surface->format->Amask);
+    srcrect = {3 * w, h, w, h};
+    SDL_BlitSurface(surface, &srcrect, part, nullptr);
+    faces.push_back(part);
+
+    loadCubeMap(faces);
+    for (auto &s: faces)
+        SDL_FreeSurface(s);
 }
 
 CubeMap::CubeMap(int width, int height) : SimpleTexture(width, height) {

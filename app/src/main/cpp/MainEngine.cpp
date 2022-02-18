@@ -178,14 +178,14 @@ void MainEngine::ImportScene(const string &filename) {
     cameras["mCamera"] = camera;
 
     skyBox = new SkyBox({
-                                "skybox/right.jpg",
-                                "skybox/left.jpg",
-                                "skybox/top.jpg",
-                                "skybox/bottom.jpg",
-                                "skybox/front.jpg",
-                                "skybox/back.jpg"
+                                "skybox/right.png",
+                                "skybox/left.png",
+                                "skybox/top.png",
+                                "skybox/bottom.png",
+                                "skybox/front.png",
+                                "skybox/back.png"
                         });
-
+//    skyBox = new SkyBox("skybox.png");
     auto *sl = new Scene();
     sl->loadFromFile(filename, BLENDER);
 
