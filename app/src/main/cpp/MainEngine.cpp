@@ -252,6 +252,19 @@ void MainEngine::Draw() {
             drawAxis(m, m->getModelMatrix());
         }
     }
+    if (state->debug) {
+        for (auto &light: lights) {
+            auto l = light.second;
+            drawNormals(l, l->getModelMatrix());
+            drawAxis(l, l->getModelMatrix());
+        }
+        for (auto &camera: cameras) {
+            auto c = camera.second;
+            drawNormals(c, c->getModelMatrix());
+            drawAxis(c, c->getModelMatrix());
+        }
+    }
+
     drawSkyBox();
     shaderManager->getShader("font")->invoke([=](ShaderProgram *s) {
         glUniform2f(s->getUniformLocation("pos"), -2.0f, 2.0f);
@@ -285,14 +298,14 @@ void MainEngine::drawMainAxis() {
     shaderManager->getShader("axis")->invoke([=](ShaderProgram *s) {
         ShaderProgram::block matrices = prepareMVPBlock(
                 ((AxisObject *) axisObject)->getTransformedModelMatrix(glm::mat4(1.0f),
-                                                                       Mesh::BBox{{-5.0f, -5.0f, -5.0f},
+                                                                       GLObject::BBox{{-5.0f, -5.0f, -5.0f},
                                                                                   {5.0f,  5.0f,  5.0f}}));
         s->setUniformBlock("Matrices", matrices);
         axisObject->draw(nullptr);
     });
 }
 
-void MainEngine::drawBoundingBox(Mesh *mesh, glm::mat4 modelMatrix) {
+void MainEngine::drawBoundingBox(GLObject *mesh, glm::mat4 modelMatrix) {
     shaderManager->getShader("axis")->invoke([=](ShaderProgram *s) {
         ShaderProgram::block matrices = prepareMVPBlock(
                 ((BBoxObject *) bBoxObject)->getTransformedModelMatrix(modelMatrix, mesh->getBBox()));
@@ -304,7 +317,7 @@ void MainEngine::drawBoundingBox(Mesh *mesh, glm::mat4 modelMatrix) {
     }
 }
 
-void MainEngine::drawNormals(Mesh *mesh, glm::mat4 modelMatrix) {
+void MainEngine::drawNormals(GLObject *mesh, glm::mat4 modelMatrix) {
     shaderManager->getShader("normal")->invoke([=](ShaderProgram *s) {
         ShaderProgram::block matrices = prepareMVPBlock(modelMatrix);
         s->setUniformBlock("Matrices", matrices);
@@ -315,11 +328,15 @@ void MainEngine::drawNormals(Mesh *mesh, glm::mat4 modelMatrix) {
     }
 }
 
-void MainEngine::drawAxis(Mesh *mesh, glm::mat4 modelMatrix) {
+void MainEngine::drawAxis(GLObject *mesh, glm::mat4 modelMatrix) {
     shaderManager->getShader("axis")->invoke([=](ShaderProgram *s) {
-        Mesh::BBox bBox = mesh->getBBox();
-        bBox.first = bBox.first * 1.5f;
-        bBox.second = bBox.second * 1.5f;
+        GLObject::BBox bBox = mesh->getBBox();
+        if (bBox == GLObject::emptyBBox) {
+            bBox = {{0.5f, 0.5f, 0.5f}, {-0.5f, -0.5f, -0.5f}};
+        } else {
+            bBox.first = bBox.first * 1.5f;
+            bBox.second = bBox.second * 1.5f;
+        }
         ShaderProgram::block matrices = prepareMVPBlock(
                 ((AxisObject *) axisObject)->getTransformedModelMatrix(modelMatrix, bBox));
         s->setUniformBlock("Matrices", matrices);

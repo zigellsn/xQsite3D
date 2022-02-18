@@ -4,7 +4,7 @@
 
 #include "objects/DebugObject.h"
 
-glm::mat4 DebugObject::getTransformedModelMatrix(glm::mat4 modelMatrix, Mesh::BBox newBoundingBox) {
+glm::mat4 DebugObject::getTransformedModelMatrix(glm::mat4 modelMatrix, GLObject::BBox newBoundingBox) {
     glm::vec3 size = glm::vec3(newBoundingBox.second.x - newBoundingBox.first.x,
                                newBoundingBox.second.y - newBoundingBox.first.y,
                                newBoundingBox.second.z - newBoundingBox.first.z);

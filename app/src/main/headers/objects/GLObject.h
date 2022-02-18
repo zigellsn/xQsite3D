@@ -13,6 +13,11 @@ public:
 
     virtual ~GLObject();
 
+    typedef std::pair<glm::vec3, glm::vec3> BBox;
+
+    constexpr static const BBox emptyBBox = {{0.0f, 0.0f, 0.0f},
+                                             {0.0f, 0.0f, 0.0f}};
+
     virtual void setModelMatrix(glm::mat4 transform);
 
     virtual void translate(glm::vec3 moveDirection, float speed);
@@ -28,6 +33,8 @@ public:
     virtual glm::mat4 getNormalMatrix();
 
     virtual glm::vec4 getPosition();
+
+    virtual BBox getBBox() { return emptyBBox; };
 
     virtual void draw(const std::function<void(GLObject *)> &fp);
 
@@ -54,6 +61,8 @@ public:
     constexpr static const glm::vec3 DOWN = {0.0f, -1.0f, 0.0f};
 
     Mode mode = Mode::FLY;
+
+    std::map<std::string, GLObject *> children;
 
 protected:
     glm::mat4 modelMatrix{};

@@ -41,8 +41,6 @@ public:
         float power;
     } Material;
 
-    typedef std::pair<glm::vec3, glm::vec3> BBox;
-
     explicit Mesh(aiNode *node, aiMesh *mesh, const aiScene *scene = nullptr);
 
     explicit Mesh(const std::string &name = "");
@@ -53,15 +51,13 @@ public:
 
     void setVertexData(Vertex vertex);
 
-    BBox getBBox();
+    GLObject::BBox getBBox() override;
 
     ShaderProgram::block getMaterialBlock();
 
     Material getMaterial();
 
     void draw(const std::function<void(GLObject *)> &fp) override;
-
-    std::map<std::string, Mesh *> children;
 
 protected:
 

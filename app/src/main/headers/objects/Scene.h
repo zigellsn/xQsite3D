@@ -18,7 +18,7 @@ public:
 
     void loadFromFile(const string &filename, int importMode = 0);
 
-    std::map<std::string, Mesh *> getMeshes();
+    std::map<std::string, GLObject *> getMeshes();
 
     Mesh *getMesh(unsigned int index, aiNode *node);
 
@@ -35,7 +35,7 @@ public:
     std::map<std::string, Mesh *> additional_meshes;
 
 private:
-    void getAllMeshes(aiNode *node, aiMatrix4x4 transformation, std::map<std::string, Mesh *> *meshes);
+    void getAllMeshes(aiNode *node, aiMatrix4x4 transformation, std::map<std::string, GLObject *> *meshes);
 
     const aiScene *scene;
 

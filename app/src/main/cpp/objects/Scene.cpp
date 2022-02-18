@@ -22,8 +22,8 @@ void Scene::addMesh(Mesh *mesh) {
     additional_meshes[mesh->name] = mesh;
 }
 
-std::map<std::string, Mesh *> Scene::getMeshes() {
-    std::map<std::string, Mesh *> meshes;
+std::map<std::string, GLObject *> Scene::getMeshes() {
+    std::map<std::string, GLObject *> meshes;
     if (scene != nullptr) {
         getAllMeshes(scene->mRootNode, scene->mRootNode->mTransformation,
                      &meshes);
@@ -32,7 +32,7 @@ std::map<std::string, Mesh *> Scene::getMeshes() {
 }
 
 void Scene::getAllMeshes(aiNode *node, aiMatrix4x4 transformation,
-                         std::map<std::string, Mesh *> *meshes) {
+                         std::map<std::string, GLObject *> *meshes) {
     aiMatrix4x4 transform;
     Mesh *tmpMesh;
     if (node->mNumMeshes > 0) {

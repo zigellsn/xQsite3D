@@ -11,7 +11,7 @@
 class DebugObject : public Mesh {
 
 public:
-    virtual glm::mat4 getTransformedModelMatrix(glm::mat4 modelMatrix, Mesh::BBox newBoundingBox);
+    virtual glm::mat4 getTransformedModelMatrix(glm::mat4 modelMatrix, GLObject::BBox newBoundingBox);
 
 };
 

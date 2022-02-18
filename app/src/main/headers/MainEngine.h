@@ -41,7 +41,7 @@ private:
     SDL_Window *win;
     SDL_GLContext mainGLContext;
 
-    std::map<std::string, Mesh *> meshes;
+    std::map<std::string, GLObject *> meshes;
     std::map<std::string, Camera *> cameras;
     std::map<std::string, Light *> lights;
 
@@ -57,11 +57,11 @@ private:
 
     void initShaders();
 
-    void drawBoundingBox(Mesh *mesh, glm::mat4 modelMatrix);
+    void drawBoundingBox(GLObject *mesh, glm::mat4 modelMatrix);
 
-    void drawNormals(Mesh *mesh, glm::mat4 modelMatrix);
+    void drawNormals(GLObject *mesh, glm::mat4 modelMatrix);
 
-    void drawAxis(Mesh *mesh, glm::mat4 modelMatrix);
+    void drawAxis(GLObject *mesh, glm::mat4 modelMatrix);
 
     void drawSkyBox();
 };

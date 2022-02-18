@@ -230,7 +230,7 @@ void Mesh::calculateBoundingBox() {
     }
 }
 
-Mesh::BBox Mesh::getBBox() {
+GLObject::BBox Mesh::getBBox() {
     return boundingBox;
 }
 
