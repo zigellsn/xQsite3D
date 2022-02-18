@@ -12,7 +12,6 @@ Mesh::Mesh(aiNode *node, aiMesh *mesh, const aiScene *scene) : Mesh() {
     string dir = "res/textures/";
     name = mesh->mName.data;
     aiMaterial *mat = scene->mMaterials[mesh->mMaterialIndex];
-    fillMaterial(mat);
 
     unsigned int uvChannels = mesh->GetNumUVChannels();
     aiVector3D *textureCoordinates = nullptr;
@@ -32,6 +31,7 @@ Mesh::Mesh(aiNode *node, aiMesh *mesh, const aiScene *scene) : Mesh() {
             }
         }
     }
+    fillMaterial(mat);
     setIndices(mesh->mNumFaces, mesh->mFaces);
 
     for (unsigned int i = 0; i < mesh->mNumVertices; i++) {
@@ -235,18 +235,20 @@ GLObject::BBox Mesh::getBBox() {
 }
 
 void Mesh::fillMaterial(aiMaterial *mat) {
-    float blendIndex = 1.0f;
-
-    if (!textures.empty())
-        blendIndex = textures[0]->getBlendIndex();
-
     material = {
-            blendIndex,
+            1.0f,
             getColor(mat, AI_MATKEY_COLOR_AMBIENT),
             getColor(mat, AI_MATKEY_COLOR_DIFFUSE),
             getColor(mat, AI_MATKEY_COLOR_SPECULAR),
-            32.0f
+            32.0f,
+            GL_FALSE
     };
+
+    if (!textures.empty()) {
+        material.blendIndex = textures[0]->getBlendIndex();
+        material.useDiffuseMap = GL_TRUE;
+    }
+
 }
 
 glm::vec4 Mesh::getColor(aiMaterial *mat, const char *key, unsigned int type,

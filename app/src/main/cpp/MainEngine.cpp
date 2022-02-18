@@ -225,8 +225,12 @@ void MainEngine::Draw() {
                 glUniform3f(s->getUniformLocation("material.specular"), mat.specular.x,
                             mat.specular.y, mat.specular.z);
                 glUniform1f(s->getUniformLocation("material.shininess"), mat.power);
-                glUniform1i(s->getUniformLocation("material.diffuseMap"), 0);
-                glUniform1i(s->getUniformLocation("material.useDiffuseMap"), GL_TRUE);
+                if (mat.useDiffuseMap == GL_TRUE) {
+                    glUniform1i(s->getUniformLocation("material.diffuseMap"), 0);
+                    glUniform1i(s->getUniformLocation("material.useDiffuseMap"), GL_TRUE);
+                } else {
+                    glUniform1i(s->getUniformLocation("material.useDiffuseMap"), GL_FALSE);
+                }
                 int i = 0;
                 for (auto &light: lights) {
                     auto l = light.second;

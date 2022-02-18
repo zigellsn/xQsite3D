@@ -7,8 +7,8 @@ Scene::Scene() : scene(nullptr) {
 void Scene::loadFromFile(const string &filename, int importMode) {
     this->mode = importMode;
 
-    blenderCorrectionMatrix = glm::rotate(blenderCorrectionMatrix, -glm::half_pi<float>(), glm::vec3(1.0f, 0.0f, 0.0f));
     blenderCorrectionMatrix = glm::rotate(blenderCorrectionMatrix, glm::pi<float>(), glm::vec3(0.0f, 0.0f, 1.0f));
+    blenderCorrectionMatrix = glm::rotate(blenderCorrectionMatrix, glm::pi<float>(), glm::vec3(0.0f, 1.0f, 0.0f));
 
     auto *importer = new Assimp::Importer;
     scene = importer->ReadFile(filename,

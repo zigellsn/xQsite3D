@@ -8,7 +8,7 @@ void GLObject::translate(glm::vec3 moveDirection, float speed) {
     glm::vec3 right = modelMatrix[0];
     glm::mat3 newMatrix = glm::mat4(1.0f);
     if (mode == Mode::FLY) {
-        newMatrix = glm::mat3(right, up, direction);
+        newMatrix = glm::mat3(-right, up, direction);
     } else {
         newMatrix = glm::mat3({1.0f, 0.0f, 0.0f},
                               {0.0f, 1.0f, 0.0f},
@@ -16,7 +16,7 @@ void GLObject::translate(glm::vec3 moveDirection, float speed) {
     }
     glm::vec3 nDirection = glm::normalize(moveDirection);
     nDirection = newMatrix * moveDirection;
-    position -= nDirection * speed;
+    position += nDirection * speed;
     updateModelMatrix();
 }
 

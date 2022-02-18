@@ -39,6 +39,7 @@ public:
         glm::vec4 diffuse;
         glm::vec4 specular;
         float power;
+        int useDiffuseMap = GL_FALSE;
     } Material;
 
     explicit Mesh(aiNode *node, aiMesh *mesh, const aiScene *scene = nullptr);
