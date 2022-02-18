@@ -54,6 +54,7 @@ void MainEngine::Init() {
     }
 
     mainGLContext = SDL_GL_CreateContext(win);
+    glGetIntegerv(GL_FRAMEBUFFER_BINDING, &window_fbo);
 
     SDL_GL_MakeCurrent(win, mainGLContext);
     SDL_GL_SetSwapInterval(1);
@@ -93,6 +94,8 @@ void MainEngine::Init() {
     font->height = 0.05f;
     font->renderText("fps: 0.0", {1.0f, 0.0f, 0.0f, 1.0f});
 
+    renderPass = new RenderPass(SCREEN_WIDTH, SCREEN_HEIGHT, window_fbo);
+
     initShaders();
     state->state = GState::RUNNING;
 }
@@ -129,6 +132,12 @@ void MainEngine::initShaders() {
                                                               "res/shader/skybox_fragment.glsl");
     skyBoxShader->appendAttribute("position");
     skyBoxShader->link();
+
+    ShaderProgram *screenShader = shaderManager->createShader("screen", "res/shader/screen_vertex.glsl",
+                                                              "res/shader/screen_fragment.glsl");
+    screenShader->appendAttribute("position");
+    screenShader->appendAttribute("texture");
+    screenShader->link();
 }
 
 void MainEngine::MainLoop() {
@@ -154,7 +163,13 @@ void MainEngine::MainLoop() {
                     break;
             }
         });
-        Draw();
+        renderPass->apply([=](RenderPass *pass) {
+            Draw();
+        });
+        shaderManager->getShader("screen")->apply([=](ShaderProgram *s) {
+            glUniform1i(s->getUniformLocation("textureSampler"), 0);
+            renderPass->draw(nullptr);
+        });
         SDL_GL_SwapWindow(win);
         calcFPS();
         static int frameCounter = 0;
@@ -211,12 +226,13 @@ void MainEngine::ImportScene(const string &filename) {
 void MainEngine::Draw() {
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glEnable(GL_DEPTH_TEST);
 
     if (state->debug)
         drawMainAxis();
     for (auto &mesh: meshes) {
         auto m = mesh.second;
-        shaderManager->getShader("ship")->invoke([=](ShaderProgram *s) {
+        shaderManager->getShader("ship")->apply([=](ShaderProgram *s) {
             ShaderProgram::block matrices = prepareMVPBlock(m->getModelMatrix(), m->getNormalMatrix());
             glUniform3f(s->getUniformLocation("viewPos"),
                         cameras[state->currentCamera]->position.x,
@@ -277,7 +293,7 @@ void MainEngine::Draw() {
     }
 
     drawSkyBox();
-    shaderManager->getShader("font")->invoke([=](ShaderProgram *s) {
+    shaderManager->getShader("font")->apply([=](ShaderProgram *s) {
         glUniform2f(s->getUniformLocation("pos"), -2.0f, 2.0f);
         glUniform1i(s->getUniformLocation("textureSampler"), 0);
         font->draw(nullptr);
@@ -306,18 +322,18 @@ MainEngine::~MainEngine() {
 }
 
 void MainEngine::drawMainAxis() {
-    shaderManager->getShader("axis")->invoke([=](ShaderProgram *s) {
+    shaderManager->getShader("axis")->apply([=](ShaderProgram *s) {
         ShaderProgram::block matrices = prepareMVPBlock(
                 ((AxisObject *) axisObject)->getTransformedModelMatrix(glm::mat4(1.0f),
                                                                        GLObject::BBox{{-5.0f, -5.0f, -5.0f},
-                                                                                  {5.0f,  5.0f,  5.0f}}));
+                                                                                      {5.0f,  5.0f,  5.0f}}));
         s->setUniformBlock("Matrices", matrices);
         axisObject->draw(nullptr);
     });
 }
 
 void MainEngine::drawBoundingBox(GLObject *mesh, glm::mat4 modelMatrix) {
-    shaderManager->getShader("axis")->invoke([=](ShaderProgram *s) {
+    shaderManager->getShader("axis")->apply([=](ShaderProgram *s) {
         ShaderProgram::block matrices = prepareMVPBlock(
                 ((BBoxObject *) bBoxObject)->getTransformedModelMatrix(modelMatrix, mesh->getBBox()));
         s->setUniformBlock("Matrices", matrices);
@@ -329,7 +345,7 @@ void MainEngine::drawBoundingBox(GLObject *mesh, glm::mat4 modelMatrix) {
 }
 
 void MainEngine::drawNormals(GLObject *mesh, glm::mat4 modelMatrix) {
-    shaderManager->getShader("normal")->invoke([=](ShaderProgram *s) {
+    shaderManager->getShader("normal")->apply([=](ShaderProgram *s) {
         ShaderProgram::block matrices = prepareMVPBlock(modelMatrix);
         s->setUniformBlock("Matrices", matrices);
         mesh->draw(nullptr);
@@ -340,10 +356,11 @@ void MainEngine::drawNormals(GLObject *mesh, glm::mat4 modelMatrix) {
 }
 
 void MainEngine::drawAxis(GLObject *mesh, glm::mat4 modelMatrix) {
-    shaderManager->getShader("axis")->invoke([=](ShaderProgram *s) {
+    shaderManager->getShader("axis")->apply([=](ShaderProgram *s) {
         GLObject::BBox bBox = mesh->getBBox();
         if (bBox == GLObject::emptyBBox) {
-            bBox = {{0.5f, 0.5f, 0.5f}, {-0.5f, -0.5f, -0.5f}};
+            bBox = {{0.5f,  0.5f,  0.5f},
+                    {-0.5f, -0.5f, -0.5f}};
         } else {
             bBox.first = bBox.first * 1.5f;
             bBox.second = bBox.second * 1.5f;
@@ -359,7 +376,7 @@ void MainEngine::drawAxis(GLObject *mesh, glm::mat4 modelMatrix) {
 }
 
 void MainEngine::drawSkyBox() {
-    shaderManager->getShader("skybox")->invoke([=](ShaderProgram *s) {
+    shaderManager->getShader("skybox")->apply([=](ShaderProgram *s) {
         ShaderProgram::block matrices;
         ((SkyBox *) skyBox)->setViewMatrix(cameras[state->currentCamera]->viewMatrix);
         matrices["V"] = {(void *) &((SkyBox *) skyBox)->viewMatrix[0][0], 16 * sizeof(float)};

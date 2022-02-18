@@ -132,7 +132,7 @@ void ShaderProgram::appendAttribute(const std::string &attribute) {
     glBindAttribLocation(programId, numAttributes++, attribute.c_str());
 }
 
-void ShaderProgram::invoke(const std::function<void(ShaderProgram *)> &fp) {
+void ShaderProgram::apply(const std::function<void(ShaderProgram *)> &fp) {
     glUseProgram(programId);
     for (int i = 0; i < numAttributes; i++) {
         glEnableVertexAttribArray(i);

@@ -8,6 +8,7 @@
 #include "State.h"
 #include "Input.h"
 #include "ShaderManager.h"
+#include "RenderPass.h"
 
 using namespace std;
 
@@ -40,6 +41,7 @@ private:
 
     SDL_Window *win;
     SDL_GLContext mainGLContext;
+    int window_fbo;
 
     std::map<std::string, GLObject *> meshes;
     std::map<std::string, Camera *> cameras;
@@ -52,6 +54,8 @@ private:
     Mesh *bBoxObject{};
     Mesh *skyBox{};
     Font *font{};
+
+    RenderPass *renderPass{};
 
     ShaderProgram::block prepareMVPBlock(glm::mat4 modelMatrix, glm::mat4 normalMatrix = glm::mat4(1.0f));
 

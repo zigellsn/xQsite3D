@@ -36,7 +36,7 @@ public:
 
     void setUniformBlock(const GLchar *name, block &values);
 
-    void invoke(const std::function<void(ShaderProgram *)> &fp);
+    void apply(const std::function<void(ShaderProgram *)> &fp);
 
 
 private:
