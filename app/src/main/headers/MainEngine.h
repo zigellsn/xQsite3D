@@ -14,7 +14,7 @@ using namespace std;
 
 class MainEngine {
 public:
-    MainEngine(int w, int h, bool fullscreen);
+    MainEngine(int w, int h, bool fullscreen, const std::string &title = "xQsite3D");
 
     virtual ~MainEngine();
 
@@ -39,9 +39,11 @@ private:
     int SCREEN_WIDTH;
     int SCREEN_HEIGHT;
 
+    std::string TITLE;
+
     SDL_Window *win;
     SDL_GLContext mainGLContext;
-    int window_fbo;
+    int window_fbo{};
 
     std::map<std::string, GLObject *> meshes;
     std::map<std::string, Camera *> cameras;

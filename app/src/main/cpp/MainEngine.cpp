@@ -9,12 +9,14 @@
 #include "objects/BBoxObject.h"
 #include "objects/SkyBox.h"
 
-MainEngine::MainEngine(int w, int h, bool fullscreen) {
+MainEngine::MainEngine(int w, int h, bool fullscreen, const std::string &title) {
     flags = SDL_WINDOW_OPENGL;
     if (fullscreen)
         flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
     SCREEN_WIDTH = w;
     SCREEN_HEIGHT = h;
+
+    TITLE = title;
 
     win = nullptr;
     mainGLContext = nullptr;
@@ -47,7 +49,7 @@ void MainEngine::Init() {
 
     SDL_SetRelativeMouseMode(SDL_TRUE);
 
-    win = SDL_CreateWindow("OpenGL Test", SDL_WINDOWPOS_UNDEFINED,
+    win = SDL_CreateWindow(TITLE.c_str(), SDL_WINDOWPOS_UNDEFINED,
                            SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, flags);
     if (win == nullptr) {
         error(SDL_GetError());
@@ -199,7 +201,7 @@ void MainEngine::MainLoop() {
 void MainEngine::Update() {
     std::ostringstream o;
     o << state->fps;
-    string title = "OpenGL Test fps: " + o.str();
+    string title = TITLE + " fps: " + o.str();
     font->renderText("fps: " + o.str(), {1.0f, 0.0f, 0.0f, 1.0f});
     SDL_SetWindowTitle(win, title.c_str());
 }
