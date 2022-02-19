@@ -17,8 +17,25 @@ RenderPass::RenderPass(int width, int height, int windowFbo) {
     setIndices({0, 2, 3, 2, 0, 1});
 
     glGenFramebuffers(1, &frameBuffer);
-    glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
 
+    glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
+    createTexture(width, height);
+    createRenderBuffer(width, height);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void RenderPass::createRenderBuffer(int width, int height) {
+    glGenRenderbuffers(1, &renderBuffer);
+    glBindRenderbuffer(GL_RENDERBUFFER, renderBuffer);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, renderBuffer);
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+        cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << endl;
+    glBindRenderbuffer(GL_RENDERBUFFER, 0);
+    glBindFramebuffer(GL_FRAMEBUFFER, windowFrameBuffer);
+}
+
+void RenderPass::createTexture(int width, int height) {
     glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_2D, texture);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
@@ -26,14 +43,6 @@ RenderPass::RenderPass(int width, int height, int windowFbo) {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
-
-    glGenRenderbuffers(1, &renderBuffer);
-    glBindRenderbuffer(GL_RENDERBUFFER, renderBuffer);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, renderBuffer);
-    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-        cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << endl;
-    glBindFramebuffer(GL_FRAMEBUFFER, windowFrameBuffer);
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 
@@ -42,11 +51,13 @@ void RenderPass::apply(const std::function<void(RenderPass *)> &fp, bool active)
         fp(this);
         return;
     }
+    glBindRenderbuffer(GL_RENDERBUFFER, renderBuffer);
     glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
     glBindTexture(GL_TEXTURE_2D, texture);
     fp(this);
     glBindTexture(GL_TEXTURE_2D, 0);
     glBindFramebuffer(GL_FRAMEBUFFER, windowFrameBuffer);
+    glBindRenderbuffer(GL_RENDERBUFFER, 0);
 }
 
 void RenderPass::draw(const std::function<void(GLObject *)> &fp) {

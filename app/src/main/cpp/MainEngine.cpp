@@ -107,6 +107,10 @@ void MainEngine::initShaders() {
     fontShader->appendAttribute("normal");
     fontShader->appendAttribute("texture");
     fontShader->link();
+    fontShader->apply([=](ShaderProgram *s) {
+        glUniform1i(s->getUniformLocation("textureSampler"), 0);
+    });
+
 
     ShaderProgram *shipShader = shaderManager->createShader("ship", "res/shader/ship_vertex.glsl",
                                                             "res/shader/ship_fragment.glsl");
@@ -132,12 +136,18 @@ void MainEngine::initShaders() {
                                                               "res/shader/skybox_fragment.glsl");
     skyBoxShader->appendAttribute("position");
     skyBoxShader->link();
+    skyBoxShader->apply([=](ShaderProgram *s) {
+        glUniform1i(s->getUniformLocation("skybox"), 0);
+    });
 
     ShaderProgram *screenShader = shaderManager->createShader("screen", "res/shader/screen_vertex.glsl",
                                                               "res/shader/screen_fragment.glsl");
     screenShader->appendAttribute("position");
     screenShader->appendAttribute("texture");
     screenShader->link();
+    screenShader->apply([=](ShaderProgram *s) {
+        glUniform1i(s->getUniformLocation("textureSampler"), 0);
+    });
 }
 
 void MainEngine::MainLoop() {
@@ -167,7 +177,6 @@ void MainEngine::MainLoop() {
             Draw();
         });
         shaderManager->getShader("screen")->apply([=](ShaderProgram *s) {
-            glUniform1i(s->getUniformLocation("textureSampler"), 0);
             renderPass->draw(nullptr);
         });
         SDL_GL_SwapWindow(win);
@@ -295,7 +304,6 @@ void MainEngine::Draw() {
     drawSkyBox();
     shaderManager->getShader("font")->apply([=](ShaderProgram *s) {
         glUniform2f(s->getUniformLocation("pos"), -2.0f, 2.0f);
-        glUniform1i(s->getUniformLocation("textureSampler"), 0);
         font->draw(nullptr);
     });
 }
@@ -382,7 +390,6 @@ void MainEngine::drawSkyBox() {
         matrices["V"] = {(void *) &((SkyBox *) skyBox)->viewMatrix[0][0], 16 * sizeof(float)};
         matrices["P"] = {(void *) &cameras[state->currentCamera]->projectionMatrix[0][0], 16 * sizeof(float)};
         s->setUniformBlock("Matrices", matrices);
-        glUniform1i(s->getUniformLocation("skybox"), 0);
         skyBox->draw(nullptr);
     });
 }

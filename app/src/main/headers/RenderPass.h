@@ -19,6 +19,11 @@ public:
 
     ~RenderPass() override;
 
+protected:
+    void createTexture(int width, int height);
+
+    void createRenderBuffer(int width, int height);
+
 private:
     unsigned int frameBuffer{};
     unsigned int texture{};
