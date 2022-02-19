@@ -45,6 +45,8 @@ private:
     SDL_GLContext mainGLContext;
     int window_fbo{};
 
+    Mix_Music *sample;
+
     std::map<std::string, GLObject *> meshes;
     std::map<std::string, Camera *> cameras;
     std::map<std::string, Light *> lights;

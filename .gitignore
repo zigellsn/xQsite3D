@@ -169,6 +169,7 @@ $RECYCLE.BIN/
 
 res/textures/
 res/font/
+res/sound/
 
 # End of https://www.gitignore.io/api/c++,cmake,clion,windows
 # Ignore Gradle project-specific cache directory

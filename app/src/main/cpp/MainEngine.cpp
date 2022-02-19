@@ -89,6 +89,12 @@ void MainEngine::Init() {
     }
 
     IMG_Init(IMG_INIT_JPG | IMG_INIT_PNG);
+    int mixerFlags = MIX_INIT_MOD|MIX_INIT_MP3;
+    Mix_Init(mixerFlags);
+    Mix_OpenAudio(44100, AUDIO_S16SYS, 2, 512);
+    Mix_AllocateChannels(4);
+    sample = Mix_LoadMUS("./res/sound/inf.mp3");
+    Mix_PlayMusic(sample, -1);
     TTF_Init();
 
     axisObject = new AxisObject();
@@ -330,6 +336,9 @@ MainEngine::~MainEngine() {
     TTF_Quit();
     IMG_Quit();
     SDL_Quit();
+    Mix_FreeMusic(sample);
+    Mix_CloseAudio();
+    Mix_Quit();
 }
 
 void MainEngine::drawMainAxis() {
