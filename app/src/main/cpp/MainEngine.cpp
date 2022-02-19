@@ -55,6 +55,7 @@ void MainEngine::Init() {
 
     mainGLContext = SDL_GL_CreateContext(win);
     glGetIntegerv(GL_FRAMEBUFFER_BINDING, &window_fbo);
+    SDL_GL_GetDrawableSize(win, &SCREEN_WIDTH, &SCREEN_HEIGHT);
 
     SDL_GL_MakeCurrent(win, mainGLContext);
     SDL_GL_SetSwapInterval(1);
