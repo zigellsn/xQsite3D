@@ -18,6 +18,12 @@ Light::Light(aiNode *node, aiLight *light, const aiScene *scene) : GLObject() {
                             m4.a3, m4.b3, m4.c3, m4.d3,
                             m4.a4, m4.b4, m4.c4, m4.d4);
 
+    this->position = modelMatrix * glm::vec4(light->mPosition.x, light->mPosition.y, light->mPosition.z, 1.0f);
+    this->direction = modelMatrix * glm::vec4(light->mDirection.x, light->mDirection.y, light->mDirection.z, 0.0f);
+    glm::vec3 right = {modelMatrix[0][0], modelMatrix[1][0], modelMatrix[2][0]};
+    this->up = glm::normalize(glm::cross(direction, right));
+    this->lookAt = glm::lookAt(position, direction, up);
+
     this->ambient = glm::vec4(light->mColorAmbient.r,
                               light->mColorAmbient.g,
                               light->mColorAmbient.b,

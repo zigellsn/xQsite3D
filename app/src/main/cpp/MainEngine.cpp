@@ -89,12 +89,12 @@ void MainEngine::Init() {
     }
 
     IMG_Init(IMG_INIT_JPG | IMG_INIT_PNG);
-    int mixerFlags = MIX_INIT_MOD|MIX_INIT_MP3;
+    int mixerFlags = MIX_INIT_MOD | MIX_INIT_MP3;
     Mix_Init(mixerFlags);
     Mix_OpenAudio(44100, AUDIO_S16SYS, 2, 512);
     Mix_AllocateChannels(4);
-    sample = Mix_LoadMUS("./res/sound/inf.mp3");
-    Mix_PlayMusic(sample, -1);
+    // sample = Mix_LoadMUS("./res/sound/inf.mp3");
+    // Mix_PlayMusic(sample, -1);
     TTF_Init();
 
     axisObject = new AxisObject();
@@ -104,59 +104,70 @@ void MainEngine::Init() {
     font->renderText("fps: 0.0", {1.0f, 0.0f, 0.0f, 1.0f});
 
     renderPass = new RenderPass(SCREEN_WIDTH, SCREEN_HEIGHT, window_fbo);
+    renderPass->init();
+    shadowPass = new ShadowPass(1024, 1024, SCREEN_WIDTH, SCREEN_HEIGHT, window_fbo);
+    shadowPass->init();
 
     initShaders();
     state->state = GState::RUNNING;
 }
 
 void MainEngine::initShaders() {
-    ShaderProgram *fontShader = shaderManager->createShader("font", "res/shader/text_vertex.glsl",
-                                                            "res/shader/text_fragment.glsl");
-    fontShader->appendAttribute("position");
-    fontShader->appendAttribute("normal");
-    fontShader->appendAttribute("texture");
-    fontShader->link();
-    fontShader->apply([=](ShaderProgram *s) {
+    ShaderProgram *shader = shaderManager->createShader("font", "res/shader/text_vertex.glsl",
+                                                        "res/shader/text_fragment.glsl");
+    shader->appendAttribute("position");
+    shader->appendAttribute("normal");
+    shader->appendAttribute("texture");
+    shader->link();
+    shader->apply([=](ShaderProgram *s) {
         glUniform1i(s->getUniformLocation("textureSampler"), 0);
     });
 
 
-    ShaderProgram *shipShader = shaderManager->createShader("ship", "res/shader/ship_vertex.glsl",
-                                                            "res/shader/ship_fragment.glsl");
-    shipShader->appendAttribute("position");
-    shipShader->appendAttribute("normal");
-    shipShader->appendAttribute("texture");
-    shipShader->link();
+    shader = shaderManager->createShader("ship", "res/shader/ship_vertex.glsl",
+                                         "res/shader/ship_fragment.glsl");
+    shader->appendAttribute("position");
+    shader->appendAttribute("normal");
+    shader->appendAttribute("texture");
+    shader->link();
+    shader->apply([=](ShaderProgram *s) {
+        glUniform1i(s->getUniformLocation("shadowSampler"), 1);
+    });
 
-    ShaderProgram *normalShader = shaderManager->createShader("normal", "res/shader/normal_vertex.glsl",
-                                                              "res/shader/normal_fragment.glsl",
-                                                              "res/shader/normal_geometry.glsl");
-    normalShader->appendAttribute("position");
-    normalShader->appendAttribute("normal");
-    normalShader->link();
+    shader = shaderManager->createShader("normal", "res/shader/normal_vertex.glsl",
+                                         "res/shader/normal_fragment.glsl",
+                                         "res/shader/normal_geometry.glsl");
+    shader->appendAttribute("position");
+    shader->appendAttribute("normal");
+    shader->link();
 
-    ShaderProgram *axisShader = shaderManager->createShader("axis", "res/shader/axis_vertex.glsl",
-                                                            "res/shader/axis_fragment.glsl");
-    axisShader->appendAttribute("position");
-    axisShader->appendAttribute("color");
-    axisShader->link();
+    shader = shaderManager->createShader("axis", "res/shader/axis_vertex.glsl",
+                                         "res/shader/axis_fragment.glsl");
+    shader->appendAttribute("position");
+    shader->appendAttribute("color");
+    shader->link();
 
-    ShaderProgram *skyBoxShader = shaderManager->createShader("skybox", "res/shader/skybox_vertex.glsl",
-                                                              "res/shader/skybox_fragment.glsl");
-    skyBoxShader->appendAttribute("position");
-    skyBoxShader->link();
-    skyBoxShader->apply([=](ShaderProgram *s) {
+    shader = shaderManager->createShader("skybox", "res/shader/skybox_vertex.glsl",
+                                         "res/shader/skybox_fragment.glsl");
+    shader->appendAttribute("position");
+    shader->link();
+    shader->apply([=](ShaderProgram *s) {
         glUniform1i(s->getUniformLocation("skybox"), 0);
     });
 
-    ShaderProgram *screenShader = shaderManager->createShader("screen", "res/shader/screen_vertex.glsl",
-                                                              "res/shader/screen_fragment.glsl");
-    screenShader->appendAttribute("position");
-    screenShader->appendAttribute("texture");
-    screenShader->link();
-    screenShader->apply([=](ShaderProgram *s) {
+    shader = shaderManager->createShader("screen", "res/shader/screen_vertex.glsl",
+                                         "res/shader/screen_fragment.glsl");
+    shader->appendAttribute("position");
+    shader->appendAttribute("texture");
+    shader->link();
+    shader->apply([=](ShaderProgram *s) {
         glUniform1i(s->getUniformLocation("textureSampler"), 0);
     });
+
+    shader = shaderManager->createShader("shadow", "res/shader/shadow_vertex.glsl",
+                                         "res/shader/shadow_fragment.glsl");
+    shader->appendAttribute("position");
+    shader->link();
 }
 
 void MainEngine::MainLoop() {
@@ -182,6 +193,9 @@ void MainEngine::MainLoop() {
                     break;
             }
         });
+        shadowPass->apply([=](RenderPass *pass) {
+            DrawShadowPass();
+        });
         renderPass->apply([=](RenderPass *pass) {
             Draw();
         });
@@ -200,7 +214,6 @@ void MainEngine::MainLoop() {
         if (1000.f / state->maxFPS > frameTicks) {
             SDL_Delay((unsigned int) (1000.f / state->maxFPS - frameTicks));
         }
-
     }
 }
 
@@ -272,6 +285,8 @@ void MainEngine::Draw() {
                 } else {
                     glUniform1i(s->getUniformLocation("material.useDiffuseMap"), GL_FALSE);
                 }
+                glActiveTexture(GL_TEXTURE1);
+                glBindTexture(GL_TEXTURE_2D, shadowPass->texture);
                 int i = 0;
                 for (auto &light: lights) {
                     auto l = light.second;
@@ -286,6 +301,8 @@ void MainEngine::Draw() {
                                 l->diffuse.z);
                     glUniform3f(s->getUniformLocation("light[" + index + "].specular"), l->specular.x, l->specular.y,
                                 l->specular.z);
+                    glUniform3f(s->getUniformLocation("light[" + index + "].direction"), l->direction.x, l->direction.y,
+                                l->direction.z);
                     i++;
                 }
             });
@@ -317,28 +334,39 @@ void MainEngine::Draw() {
     });
 }
 
+void MainEngine::DrawShadowPass() {
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glEnable(GL_DEPTH_TEST);
+    float near_plane = 1.0f, far_plane = 7.5f;
+    glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, cameras[state->currentCamera]->near,
+                                           cameras[state->currentCamera]->far);
+    glm::mat4 lightView = lights["Light_top"]->lookAt;
+    lightSpaceMatrix = lightProjection * lightView;
+    for (auto &mesh: meshes) {
+        auto m = mesh.second;
+        shaderManager->getShader("shadow")->apply([=](ShaderProgram *s) {
+            m->draw([=](GLObject *mesh) {
+                ShaderProgram::block matrices;
+                matrices["M"] = {(void *) &mesh->getModelMatrix()[0][0], 16 * sizeof(float)};
+                matrices["L"] = {(void *) &lightSpaceMatrix[0][0], 16 * sizeof(float)};
+                s->setUniformBlock("Matrices", matrices);
+            });
+        });
+    }
+}
+
 ShaderProgram::block MainEngine::prepareMVPBlock(glm::mat4 modelMatrix, glm::mat4 normalMatrix) {
     ShaderProgram::block matrices;
+    glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, cameras[state->currentCamera]->near,
+                                           cameras[state->currentCamera]->far);
+    glm::mat4 lightView = lights["Light_top"]->lookAt;
+    lightSpaceMatrix = lightProjection * lightView;
     matrices["M"] = {(void *) &modelMatrix[0][0], 16 * sizeof(float)};
     matrices["V"] = {(void *) &cameras[state->currentCamera]->viewMatrix[0][0], 16 * sizeof(float)};
     matrices["P"] = {(void *) &cameras[state->currentCamera]->projectionMatrix[0][0], 16 * sizeof(float)};
     matrices["N"] = {(void *) &normalMatrix[0][0], 16 * sizeof(float)};
+    matrices["L"] = {(void *) &lightSpaceMatrix[0][0], 16 * sizeof(float)};
     return matrices;
-}
-
-MainEngine::~MainEngine() {
-    for (auto &mesh: meshes) {
-        delete mesh.second;
-    }
-
-    SDL_GL_DeleteContext(mainGLContext);
-    SDL_DestroyWindow(win);
-    TTF_Quit();
-    IMG_Quit();
-    SDL_Quit();
-    Mix_FreeMusic(sample);
-    Mix_CloseAudio();
-    Mix_Quit();
 }
 
 void MainEngine::drawMainAxis() {
@@ -441,3 +469,17 @@ void MainEngine::calcFPS() {
     }
 }
 
+MainEngine::~MainEngine() {
+    for (auto &mesh: meshes) {
+        delete mesh.second;
+    }
+
+    SDL_GL_DeleteContext(mainGLContext);
+    SDL_DestroyWindow(win);
+    TTF_Quit();
+    IMG_Quit();
+    SDL_Quit();
+    // Mix_FreeMusic(sample);
+    Mix_CloseAudio();
+    Mix_Quit();
+}

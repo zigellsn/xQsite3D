@@ -17,7 +17,7 @@ Let the camera look down towards -Z, with the up vector pointing to Y. Now hit C
 Select every mesh and make it look in the direction of the Y axis, with the Z axis pointing up. Set the center of the mesh as you need it.
 Hit Ctrl-A and pick 'All Transforms'. Now apply its final rotation. 
 
-Export to COLLADA with 'Forward Axis Z',  'Up Asis Y' and 'Apply' checked in 'Global Orientation'. This will ensure that the camera vectors are correct.
+Export to COLLADA with 'Forward Axis Z', 'Up Asis Y' and 'Apply' checked in 'Global Orientation'. This will ensure that the camera vectors are correct.
 
 # License
 

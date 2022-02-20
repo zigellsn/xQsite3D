@@ -5,8 +5,8 @@
       <author>Blender User</author>
       <authoring_tool>Blender 3.0.1 commit date:2022-01-25, commit time:17:19, hash:dc2d18018171</authoring_tool>
     </contributor>
-    <created>2022-02-18T15:04:27</created>
-    <modified>2022-02-18T15:04:27</modified>
+    <created>2022-02-20T11:31:39</created>
+    <modified>2022-02-20T11:31:39</modified>
     <unit name="meter" meter="1"/>
     <up_axis>Z_UP</up_axis>
   </asset>
@@ -76,16 +76,18 @@
     </light>
     <light id="Light_top-light" name="Light">
       <technique_common>
-        <point>
+        <spot>
           <color sid="color">1 1 1</color>
           <constant_attenuation>1</constant_attenuation>
           <linear_attenuation>0</linear_attenuation>
           <quadratic_attenuation>0.00111109</quadratic_attenuation>
-        </point>
+          <falloff_angle sid="fall_off_angle">56.78128</falloff_angle>
+          <falloff_exponent sid="fall_off_exponent">0.15</falloff_exponent>
+        </spot>
       </technique_common>
       <extra>
         <technique profile="blender">
-          <type sid="type" type="int">0</type>
+          <type sid="type" type="int">2</type>
           <flag sid="flag" type="int">0</flag>
           <mode sid="mode" type="int">1</mode>
           <gamma sid="blender_gamma" type="float">1</gamma>
@@ -97,7 +99,7 @@
           <shadow_b sid="blender_shadow_b" type="float">0</shadow_b>
           <energy sid="blender_energy" type="float">1</energy>
           <dist sid="blender_dist" type="float">29.99998</dist>
-          <spotsize sid="spotsize" type="float">75</spotsize>
+          <spotsize sid="spotsize" type="float">56.78128</spotsize>
           <spotblend sid="spotblend" type="float">0.15</spotblend>
           <att1 sid="att1" type="float">0</att1>
           <att2 sid="att2" type="float">1</att2>
@@ -285,7 +287,7 @@
         <instance_camera url="#Camera-camera"/>
       </node>
       <node id="Light_top" name="Light_top" type="NODE">
-        <matrix sid="transform">-0.2908646 -0.5663932 0.7711008 -5.622049 0.05518906 0.7946723 0.6045247 5.903862 -0.9551712 0.2183912 -0.1998834 5.221282 0 0 0 1</matrix>
+        <matrix sid="transform">-0.4120717 -0.388385 0.8242293 -5.622049 0.2613455 0.8162106 0.5152657 5.903862 -0.8728662 0.4277351 -0.2348347 5.221282 0 0 0 1</matrix>
         <instance_light url="#Light_top-light"/>
       </node>
       <node id="Ship" name="Ship" type="NODE">

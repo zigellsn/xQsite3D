@@ -21,6 +21,8 @@ public:
     void setSpecular(glm::vec4 color);
 
     void setDiffuse(glm::vec4 color);
+
+    glm::mat4 lookAt{};
 };
 
 #endif //XQSITE_LIGHT_H

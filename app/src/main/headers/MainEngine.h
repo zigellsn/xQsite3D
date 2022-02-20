@@ -8,7 +8,8 @@
 #include "State.h"
 #include "Input.h"
 #include "ShaderManager.h"
-#include "RenderPass.h"
+#include "render/RenderPass.h"
+#include "render/ShadowPass.h"
 
 using namespace std;
 
@@ -59,7 +60,10 @@ private:
     Mesh *skyBox{};
     Font *font{};
 
+    glm::mat4 lightSpaceMatrix{};
+
     RenderPass *renderPass{};
+    ShadowPass *shadowPass{};
 
     ShaderProgram::block prepareMVPBlock(glm::mat4 modelMatrix, glm::mat4 normalMatrix = glm::mat4(1.0f));
 
@@ -72,6 +76,8 @@ private:
     void drawAxis(GLObject *mesh, glm::mat4 modelMatrix);
 
     void drawSkyBox();
+
+    void DrawShadowPass();
 };
 
 #endif //SDLTEST_MAINENGINE_H
