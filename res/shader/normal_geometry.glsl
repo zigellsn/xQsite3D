@@ -14,6 +14,7 @@ layout(std140) uniform Matrices
 	mat4 V;
 	mat4 P;
 	mat4 N;
+	mat4 L;
 };
 
 void GenerateLine(int index)

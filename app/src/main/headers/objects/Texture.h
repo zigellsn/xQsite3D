@@ -4,19 +4,20 @@
 #include "xQsite3D.h"
 #include <cassert>
 
-class Texture;
-
-Texture *textureFromSurface(SDL_Surface *surface);
-
-Texture *cubeMapFromSurfaces(std::vector<SDL_Surface *> surfaces);
-
-Texture *cubeMapFromSurface(SDL_Surface * surface);
-
 class Texture {
 public:
-    virtual ~Texture() = default;
+    Texture() {
+        glGenTextures(1, &mId);
+    };
 
-    virtual GLuint id() const = 0;
+    virtual ~Texture() {
+        if (mId)
+            glDeleteTextures(1, &mId);
+    };
+
+    GLuint id() const {
+        return mId;
+    };
 
     virtual GLuint target() const = 0;
 
@@ -24,61 +25,57 @@ public:
 
     virtual int height() const = 0;
 
-    virtual int stored_width() const = 0;
-
-    virtual int stored_height() const = 0;
-
-    virtual int offset_x() const = 0;
-
-    virtual int offset_y() const = 0;
-
-    virtual const Texture *parent() const = 0;
-
     virtual float getBlendIndex() const = 0;
 
-    Texture *slice(int x, int y, int width, int height);
+protected:
+    GLuint mId{};
 };
 
-class SimpleTexture : public Texture {
+Texture *textureFromSurface(SDL_Surface *surface);
+
+Texture *cubeMapFromSurfaces(std::vector<SDL_Surface *> surfaces);
+
+Texture *cubeMapFromSurface(SDL_Surface *surface);
+
+class GLTexture : public Texture {
+public:
+    GLTexture(int width, int height, unsigned int target);
+
+    GLuint target() const override;
+
+    int width() const override;
+
+    int height() const override;
+
+    float getBlendIndex() const override;
+
+protected:
+    unsigned int mTarget{};
+    float mBlendIndex{};
+    int mWidth{};
+    int mHeight{};
+};
+
+class SimpleTexture : public GLTexture {
 public:
     SimpleTexture(int width, int height);
 
-    ~SimpleTexture() override;
+    GLuint target() const override { return mTarget; }
 
-    GLuint id() const override { return m_id; }
+    int storedWidth() const { return mStoredWidth; }
 
-    GLuint target() const override { return GL_TEXTURE_2D; }
+    int storedHeight() const { return mStoredHeight; }
 
-    int width() const override { return m_width; }
-
-    int height() const override { return m_height; }
-
-    int stored_width() const override { return m_stored_width; }
-
-    int stored_height() const override { return m_stored_height; }
-
-    int offset_x() const override { return 0; }
-
-    int offset_y() const override { return 0; }
-
-    const Texture *parent() const override { return nullptr; }
-
-    float getBlendIndex() const override { return blendIndex; }
+    float getBlendIndex() const override { return mBlendIndex; }
 
     void initFromSurface(SDL_Surface *surface);
 
-protected:
-    GLuint m_id;
-
 private:
-    int m_width;
-    int m_height;
-    int m_stored_width;
-    int m_stored_height;
-    float blendIndex;
+    int mStoredWidth;
+    int mStoredHeight;
 };
 
-class CubeMap : public SimpleTexture {
+class CubeMap : public GLTexture {
 public:
     explicit CubeMap(int width = 0, int height = 0);
 
@@ -87,39 +84,6 @@ public:
     void loadCubeMap(SDL_Surface *surface);
 
     GLuint target() const override { return GL_TEXTURE_CUBE_MAP; }
-};
-
-class textureSlice : public Texture {
-public:
-    textureSlice(Texture *parent, int x, int y, int width, int height);
-
-    GLuint id() const override { return m_parent->id(); }
-
-    GLuint target() const override { return m_parent->target(); }
-
-    int width() const override { return m_width; }
-
-    int height() const override { return m_height; }
-
-    int stored_width() const override { return m_parent->stored_width(); }
-
-    int stored_height() const override { return m_parent->stored_height(); }
-
-    int offset_x() const override { return m_offset_x; }
-
-    int offset_y() const override { return m_offset_y; }
-
-    const Texture *parent() const override { return m_parent; }
-
-    float getBlendIndex() const override { return m_parent->getBlendIndex(); }
-
-private:
-    Texture *m_parent;
-    int m_offset_x;
-    int m_offset_y;
-    int m_width;
-    int m_height;
-    float blendIndex;
 };
 
 #endif //XQSITE_TEXTURE_H

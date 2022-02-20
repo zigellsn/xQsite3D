@@ -8,6 +8,7 @@
 #include "objects/AxisObject.h"
 #include "objects/BBoxObject.h"
 #include "objects/SkyBox.h"
+#include "objects/ScreenObject.h"
 
 MainEngine::MainEngine(int w, int h, bool fullscreen, const std::string &title) {
     flags = SDL_WINDOW_OPENGL;
@@ -108,6 +109,8 @@ void MainEngine::Init() {
     shadowPass = new ShadowPass(1024, 1024, SCREEN_WIDTH, SCREEN_HEIGHT, window_fbo);
     shadowPass->init();
 
+    screenObject = new ScreenObject(renderPass->texture);
+
     initShaders();
     state->state = GState::RUNNING;
 }
@@ -193,15 +196,7 @@ void MainEngine::MainLoop() {
                     break;
             }
         });
-        shadowPass->apply([=](RenderPass *pass) {
-            DrawShadowPass();
-        });
-        renderPass->apply([=](RenderPass *pass) {
-            Draw();
-        });
-        shaderManager->getShader("screen")->apply([=](ShaderProgram *s) {
-            renderPass->draw(nullptr);
-        });
+        Draw();
         SDL_GL_SwapWindow(win);
         calcFPS();
         static int frameCounter = 0;
@@ -255,6 +250,18 @@ void MainEngine::ImportScene(const string &filename) {
 }
 
 void MainEngine::Draw() {
+    shadowPass->apply([=](RenderPass *pass) {
+        DrawShadowPass();
+    });
+    renderPass->apply([=](RenderPass *pass) {
+        DrawObjects();
+    });
+    shaderManager->getShader("screen")->apply([=](ShaderProgram *s) {
+        screenObject->draw(nullptr);
+    });
+}
+
+void MainEngine::DrawObjects() {
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);
@@ -286,7 +293,7 @@ void MainEngine::Draw() {
                     glUniform1i(s->getUniformLocation("material.useDiffuseMap"), GL_FALSE);
                 }
                 glActiveTexture(GL_TEXTURE1);
-                glBindTexture(GL_TEXTURE_2D, shadowPass->texture);
+                glBindTexture(GL_TEXTURE_2D, shadowPass->texture->id());
                 int i = 0;
                 for (auto &light: lights) {
                     auto l = light.second;

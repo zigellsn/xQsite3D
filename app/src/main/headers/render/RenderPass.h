@@ -9,32 +9,39 @@
 #include <functional>
 #include "objects/Mesh.h"
 
-class RenderPass : public Mesh {
+class RenderPass {
 public:
     RenderPass(int width, int height, int windowFbo);
 
     void init();
 
-    virtual void apply(const std::function<void(RenderPass *)> &fp, bool active = true);
+    void activate();
 
-    virtual void draw(const std::function<void(GLObject *)> &fp, unsigned int externalTexture = 0);
+    void deactivate();
 
-    ~RenderPass() override;
+    virtual void apply(const std::function<void(RenderPass *)> &fp);
 
-    unsigned int texture{};
+    virtual ~RenderPass();
+
+    Texture *texture;
 
 protected:
     virtual void createTexture(int width, int height);
 
     virtual void createRenderBuffer(int width, int height);
 
-    unsigned int frameBuffer{};
-    unsigned int renderBuffer = 0;
+    unsigned int mFrameBuffer{};
+    unsigned int mRenderBuffer = 0;
 
     int mWidth{};
     int mHeight{};
 
-    int windowFrameBuffer;
+    int mWindowFrameBuffer;
+
+    bool mActive = true;
+
+private:
+    bool mInitialized = false;
 };
 
 

@@ -32,35 +32,45 @@ Texture *cubeMapFromSurface(SDL_Surface *surfaces) {
     return rv;
 }
 
-Texture *Texture::slice(int x, int y, int width, int height) {
-    return new textureSlice(this, x, y, width, height);
+GLTexture::GLTexture(int width, int height, unsigned int target) {
+    this->mWidth = width;
+    this->mHeight = height;
+    this->mTarget = target;
 }
 
-SimpleTexture::SimpleTexture(int width, int height) {
-    m_id = 0;
-    m_width = width;
-    m_height = height;
-    blendIndex = 1.0f;
+GLuint GLTexture::target() const {
+    return this->mTarget;
+}
+
+int GLTexture::width() const {
+    return this->mWidth;
+}
+
+int GLTexture::height() const {
+    return this->mHeight;
+}
+
+float GLTexture::getBlendIndex() const {
+    return 0.0f;
+}
+
+SimpleTexture::SimpleTexture(int width, int height) : GLTexture(width, height, GL_TEXTURE_2D) {
+    mWidth = width;
+    mHeight = height;
+    mBlendIndex = 1.0f;
 
     if (SDL_GL_ExtensionSupported("GL_ARB_texture_non_power_of_two")) {
-        m_stored_width = m_width;
-        m_stored_height = m_height;
+        mStoredWidth = mWidth;
+        mStoredHeight = mHeight;
     } else {
-        m_stored_width = nextPowerOfTwo(m_width);
-        m_stored_height = nextPowerOfTwo(m_height);
+        mStoredWidth = nextPowerOfTwo(mWidth);
+        mStoredHeight = nextPowerOfTwo(mHeight);
     }
 }
 
-SimpleTexture::~SimpleTexture() {
-    if (m_id)
-        glDeleteTextures(1, &m_id);
-}
-
 void SimpleTexture::initFromSurface(SDL_Surface *surface) {
-    assert(surface->w == m_width && surface->h == m_height);
-
-    glGenTextures(1, &m_id);
-    glBindTexture(target(), m_id);
+    assert(surface->w == mWidth && surface->h == mHeight);
+    glBindTexture(target(), mId);
     glTexParameteri(target(), GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(target(), GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(target(), GL_TEXTURE_BASE_LEVEL, 0);
@@ -80,15 +90,17 @@ void SimpleTexture::initFromSurface(SDL_Surface *surface) {
             error("Unknown texture format.");
     }
 
-    glTexImage2D(target(), 0, GL_RGBA8, m_stored_width, m_stored_height, 0,
+    glTexImage2D(target(), 0, GL_RGBA8, mStoredWidth, mStoredHeight, 0,
                  format, GL_UNSIGNED_BYTE, surface->pixels);
     glGenerateMipmap(target());
     glBindTexture(target(), 0);
-    blendIndex = 1.0f;
+    mBlendIndex = 1.0f;
 }
 
-// loads a cubemap texture from 6 individual texture faces
-// order:
+CubeMap::CubeMap(int width, int height) : GLTexture(width, height, GL_TEXTURE_2D) {
+}
+
+// Order:
 // +X (right)
 // -X (left)
 // +Y (top)
@@ -97,9 +109,7 @@ void SimpleTexture::initFromSurface(SDL_Surface *surface) {
 // -Z (back)
 // -------------------------------------------------------
 void CubeMap::loadCubeMap(std::vector<SDL_Surface *> faces) {
-    glGenTextures(1, &m_id);
-    glBindTexture(target(), m_id);
-
+    glBindTexture(target(), mId);
     for (unsigned int i = 0; i < faces.size(); i++) {
         GLenum format;
         switch (faces[i]->format->BytesPerPixel) {
@@ -203,18 +213,4 @@ void CubeMap::loadCubeMap(SDL_Surface *surface) {
     loadCubeMap(faces);
     for (auto &s: faces)
         SDL_FreeSurface(s);
-}
-
-CubeMap::CubeMap(int width, int height) : SimpleTexture(width, height) {
-
-}
-
-textureSlice::textureSlice(Texture *parent, int x, int y, int width,
-                           int height) {
-    blendIndex = 0.0f;
-    m_parent = parent;
-    m_offset_x = x;
-    m_offset_y = y;
-    m_width = width;
-    m_height = height;
 }

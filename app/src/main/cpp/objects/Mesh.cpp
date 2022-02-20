@@ -286,3 +286,7 @@ std::vector<GLuint> Mesh::generateDefaultIndices(const Mesh::Vertex &data) {
     }
     return ind;
 }
+
+void Mesh::addTexture(Texture *texture) {
+    textures.push_back(texture);
+}

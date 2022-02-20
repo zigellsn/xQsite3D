@@ -12,7 +12,7 @@ class ShadowPass : public RenderPass {
 public:
     ShadowPass(int width, int height, int screenWidth, int screenHeight, int windowFbo);
 
-    void apply(const function<void(RenderPass *)> &fp, bool active = true) override;
+    void apply(const function<void(RenderPass *)> &fp) override;
 
 protected:
     void createTexture(int width, int height) override;

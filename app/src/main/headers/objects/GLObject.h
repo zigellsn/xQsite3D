@@ -38,8 +38,6 @@ public:
 
     virtual void draw(const std::function<void(GLObject *)> &fp);
 
-    virtual void addTexture(Texture *texture);
-
     glm::vec3 position{};
     glm::vec3 up{};
     glm::vec3 direction{};
@@ -67,8 +65,6 @@ public:
 protected:
     glm::mat4 modelMatrix{};
     glm::mat4 normalMatrix{};
-
-    std::vector<Texture *> textures;
 
     virtual void drawElements() {};
 

@@ -60,6 +60,8 @@ public:
 
     void draw(const std::function<void(GLObject *)> &fp) override;
 
+    void addTexture(Texture *texture);
+
 protected:
 
     void setIndices(unsigned int numFaces, const aiFace *faces);
@@ -83,6 +85,8 @@ protected:
     Material material;
 
     GLuint vao;
+
+    std::vector<Texture *> textures;
 
     void calculateBoundingBox();
 

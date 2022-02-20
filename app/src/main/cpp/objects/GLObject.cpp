@@ -58,10 +58,6 @@ void GLObject::draw(const std::function<void(GLObject *)> &fp) {
 
 }
 
-void GLObject::addTexture(Texture *texture) {
-    this->textures.push_back(texture);
-}
-
 glm::mat4 GLObject::getModelMatrix() {
     return modelMatrix;
 }

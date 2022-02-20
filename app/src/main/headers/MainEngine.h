@@ -29,7 +29,7 @@ private:
 
     void Update();
 
-    void Draw();
+    void DrawObjects();
 
     void calcFPS();
 
@@ -55,6 +55,7 @@ private:
     State *state;
     Input *input;
     ShaderManager *shaderManager;
+    Mesh *screenObject{};
     Mesh *axisObject{};
     Mesh *bBoxObject{};
     Mesh *skyBox{};
@@ -78,6 +79,8 @@ private:
     void drawSkyBox();
 
     void DrawShadowPass();
+
+    void Draw();
 };
 
 #endif //SDLTEST_MAINENGINE_H
